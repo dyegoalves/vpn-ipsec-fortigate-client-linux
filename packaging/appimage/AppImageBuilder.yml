@@ -27,14 +27,26 @@ script:
     Exec=vpn-ipsec-client-launcher
     Type=Application
     Icon=vpn-ipsec-client
+    StartupWMClass=vpn-ipsec-client
     Categories=Network;
     Terminal=false
     Comment=Cliente VPN IPsec para Linux
     EOF
 
-  # Copiar ícone real do projeto
+  # Copiar ícones PNG em múltiplos tamanhos
+  - |
+    ICON_SIZES="16x16 24x24 32x32 48x48 64x64 128x128 256x256 512x512"
+    for size in $ICON_SIZES; do
+        if [ -f "packaging/icons_output/icons/hicolor/$size/apps/vpn-ipsec-client.png" ]; then
+            mkdir -p "AppDir/usr/share/icons/hicolor/$size/apps"
+            cp "packaging/icons_output/icons/hicolor/$size/apps/vpn-ipsec-client.png" "AppDir/usr/share/icons/hicolor/$size/apps/"
+            echo "Copiado ícone ${size}.png"
+        fi
+    done
+
+  # Copiar SVG para escalonamento
+  - mkdir -p AppDir/usr/share/icons/hicolor/scalable/apps
   - cp src/assets/icon.svg AppDir/usr/share/icons/hicolor/scalable/apps/vpn-ipsec-client.svg
-  - cp src/assets/icon.svg AppDir/vpn-ipsec-client.svg
 
   # Criar script de inicialização
   - |

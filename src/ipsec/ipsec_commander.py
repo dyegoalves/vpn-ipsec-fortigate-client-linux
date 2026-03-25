@@ -14,7 +14,7 @@ class IPsecCommander:
         """
         try:
             result = subprocess.run(
-                ["sudo", "ipsec", "up", conn_name],
+                ["sudo", "-n", "ipsec", "up", conn_name],
                 capture_output=True,
                 text=True,
                 check=False,  # Não levantar exceção automaticamente
@@ -24,7 +24,12 @@ class IPsecCommander:
             if result.returncode == 0 or "connection 'fortigate-vpn' established successfully" in result.stdout or "initiating" in result.stdout:
                 return True, f'Conexão IPsec "{conn_name}" iniciada com sucesso. Verifique o status para confirmação.'
             else:
-                return False, f'Falha ao iniciar conexão "{conn_name}": {result.stderr.strip() or result.stdout.strip()}'
+                error_msg = result.stderr.strip() or result.stdout.strip()
+                # Verificar se é erro de senha do sudo
+                if "sudo: a terminal is required" in error_msg or "sudo: password is required" in error_msg or "sudo: no tty present" in error_msg:
+                    return False, f'Falha ao iniciar conexão "{conn_name}": Privilégios de sudo não configurados. Por favor, verifique se as regras de sudo foram instaladas corretamente (pacote vpn-ipsec-client).'
+                else:
+                    return False, f'Falha ao iniciar conexão "{conn_name}": {error_msg}'
         except FileNotFoundError:
             return (
                 False,
@@ -39,7 +44,7 @@ class IPsecCommander:
         """
         try:
             result = subprocess.run(
-                ["sudo", "ipsec", "down", conn_name],
+                ["sudo", "-n", "ipsec", "down", conn_name],
                 capture_output=True,
                 text=True,
                 check=False,  # Não levantar exceção automaticamente
@@ -49,7 +54,12 @@ class IPsecCommander:
             if result.returncode == 0 or "deleting IKE_SA" in result.stdout or "connection '" + conn_name + "' closed successfully" in result.stdout:
                 return True, f'Conexão IPsec "{conn_name}" terminada com sucesso. Verifique o status para confirmação.'
             else:
-                return False, f'Falha ao terminar conexão "{conn_name}": {result.stderr.strip() or result.stdout.strip()}'
+                error_msg = result.stderr.strip() or result.stdout.strip()
+                # Verificar se é erro de senha do sudo
+                if "sudo: a terminal is required" in error_msg or "sudo: password is required" in error_msg or "sudo: no tty present" in error_msg:
+                    return False, f'Falha ao terminar conexão "{conn_name}": Privilégios de sudo não configurados. Por favor, verifique se as regras de sudo foram instaladas corretamente (pacote vpn-ipsec-client).'
+                else:
+                    return False, f'Falha ao terminar conexão "{conn_name}": {error_msg}'
         except FileNotFoundError:
             return (
                 False,
@@ -65,16 +75,20 @@ class IPsecCommander:
         try:
             # Primeiro, verificar se a conexão está ativa ou em processo de conexão
             result = subprocess.run(
-                ["sudo", "ipsec", "status"], capture_output=True, text=True, check=False
+                ["sudo", "-n", "ipsec", "status"], capture_output=True, text=True, check=False
             )
-            
+
             # Verificar se o comando foi executado com sucesso
             if result.returncode != 0:
+                error_msg = result.stderr.strip() or result.stdout.strip()
+                # Verificar se é erro de senha do sudo
+                if "sudo: a terminal is required" in error_msg or "sudo: password is required" in error_msg or "sudo: no tty present" in error_msg:
+                    return "Erro de permissão: Privilégios de sudo não configurados. Por favor, execute: sudo usermod -aG sudo $USER (e reinicie o sistema)", False
                 # Se o comando falhou, tentar obter status de configuração
                 if self._is_connection_configured(conn_name):
                     return "Desconectado", False
                 else:
-                    return f"Erro ao obter status: {result.stderr.strip() or result.stdout.strip()}", False
+                    return f"Erro ao obter status: {error_msg}", False
             
             status_output = result.stdout
 

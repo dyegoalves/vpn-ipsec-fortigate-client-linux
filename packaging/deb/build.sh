@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Script para criar um pacote .deb para a aplicação VPN IPsec Client
 
 set -e  # Sair se qualquer comando falhar
@@ -17,6 +16,23 @@ TEMP_DIR=$(mktemp -d)
 echo "Iniciando processo de empacotamento para .deb..."
 echo "Pacote: $DEBIAN_PACKAGE_NAME"
 echo "Diretório temporário: $TEMP_DIR"
+
+# Gerar ícones PNG se não existirem
+ICON_GENERATOR="$PROJECT_ROOT/packaging/generate_icons.py"
+if [ -f "$ICON_GENERATOR" ]; then
+    echo ""
+    echo "Gerando ícones PNG a partir do SVG..."
+    if python3 "$ICON_GENERATOR" > /dev/null 2>&1; then
+        echo "✓ Ícones gerados com sucesso."
+    else
+        echo "⚠ AVISO: Falha ao gerar ícones automaticamente."
+        echo "  Execute manualmente: python3 packaging/generate_icons.py"
+        echo "  Continuando com ícones de fallback..."
+    fi
+else
+    echo "⚠ AVISO: Gerador de ícones não encontrado: $ICON_GENERATOR"
+    echo "  Ícones PNG não serão incluídos no pacote."
+fi
 
 # Verificar se está rodando no Linux
 if [[ "$OSTYPE" != "linux-gnu"* ]]; then
@@ -38,7 +54,7 @@ mkdir -p "$TEMP_DIR/DEBIAN"
 mkdir -p "$TEMP_DIR/usr/bin"
 mkdir -p "$TEMP_DIR/usr/lib/$APP_NAME"
 mkdir -p "$TEMP_DIR/usr/share/applications"
-mkdir -p "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps"
+mkdir -p "$TEMP_DIR/usr/share/icons/hicolor"
 
 # Criar arquivo control
 cat > "$TEMP_DIR/DEBIAN/control" << EOF
@@ -47,22 +63,90 @@ Version: $APP_VERSION
 Section: net
 Priority: optional
 Architecture: amd64
-Depends: python3, python3-pip, python3-pyside6, python3-configparser, python3-cryptography, strongswan, libstrongswan-extra-plugins
+Depends: python3, python3-pip, python3-dev, build-essential, strongswan, libstrongswan-extra-plugins, libgl1, libegl1, libxcb-icccm4, libxcb-image0, libxcb-keysyms1, libxcb-randr0, libxcb-render-util0, libxcb-xinerama0, libxcb-xfixes0, libxrender1, libxkbcommon-x11-0
 Maintainer: $APP_MAINTAINER
 Description: $APP_DESCRIPTION
 EOF
 
 echo "Criando scripts de manutenção do pacote (postinst, postrm)..."
-# Script post-instalação para atualizar o cache de ícones
+# Script post-instalação para instalar dependências Python e atualizar o cache de ícones
 cat > "$TEMP_DIR/DEBIAN/postinst" << 'EOF'
 #!/bin/sh
 set -e
+
 if [ "$1" = "configure" ]; then
+    echo "Configurando VPN IPsec Client..."
+
+    # Atualizar cache de ícones
     echo "Atualizando cache de ícones..."
     if command -v gtk-update-icon-cache >/dev/null 2>&1; then
         gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor || true
     fi
+
+    # Instalar dependências Python
+    echo "Instalando dependências Python..."
+    APP_DIR="/usr/lib/vpn-ipsec-client"
+    if [ -f "$APP_DIR/requirements.txt" ]; then
+        echo "Encontrado requirements.txt em $APP_DIR"
+        cd "$APP_DIR"
+        # Instalar dependências system-wide com --break-system-packages para Ubuntu/Debian
+        if python3 -m pip install --break-system-packages -r requirements.txt 2>/dev/null; then
+            echo "Dependências Python instaladas com sucesso."
+        else
+            echo "AVISO: Falha ao instalar dependências Python automaticamente."
+            echo "Por favor, instale manualmente com:"
+            echo "  sudo pip3 install --break-system-packages -r $APP_DIR/requirements.txt"
+        fi
+    else
+        echo "AVISO: requirements.txt não encontrado em $APP_DIR"
+    fi
+
+    # Configurar regra de sudoers para permitir execução de comandos ipsec sem senha
+    echo "Configurando regras de sudo para comandos IPsec..."
+    SUDOERS_FILE="/etc/sudoers.d/vpn-ipsec-client"
+
+    # Identificar o usuário que instalou o pacote (SUDO_USER) ou o usuário atual
+    INSTALLING_USER="${SUDO_USER:-${USER:-root}}"
+
+    # Se não conseguimos identificar o usuário, permitir para o grupo sudo
+    if [ -z "$INSTALLING_USER" ] || [ "$INSTALLING_USER" = "root" ]; then
+        echo "Criando regra para grupo sudo..."
+        cat > "$TEMP_DIR/SUDOERS_TEMP" << SUDOEOF
+# Regra para VPN IPsec Client - permitir comandos ipsec sem senha
+%sudo ALL=(ALL) NOPASSWD: /usr/sbin/ipsec
+%admin ALL=(ALL) NOPASSWD: /usr/sbin/ipsec
+SUDOEOF
+    else
+        echo "Criando regra para usuário $INSTALLING_USER..."
+        cat > "$TEMP_DIR/SUDOERS_TEMP" << SUDOEOF
+# Regra para VPN IPsec Client - permitir comandos ipsec sem senha
+$INSTALLING_USER ALL=(ALL) NOPASSWD: /usr/sbin/ipsec
+SUDOEOF
+    fi
+
+    # Instalar a regra de sudoers validando com visudo
+    if [ -f "$TEMP_DIR/SUDOERS_TEMP" ]; then
+        echo "Validando regra de sudoers com visudo..."
+        if visudo -c -f "$TEMP_DIR/SUDOERS_TEMP" 2>/dev/null; then
+            echo "Regra de sudoers válida. Instalando em $SUDOERS_FILE..."
+            cp "$TEMP_DIR/SUDOERS_TEMP" "$SUDOERS_FILE"
+            chmod 440 "$SUDOERS_FILE"
+            echo "Regra de sudoers instalada com sucesso."
+        else
+            echo "ERRO: A regra de sudoers gerada é inválida!"
+            echo "Não foi possível configurar automaticamente. Por favor, configure manualmente:"
+            echo "  sudo visudo -f /etc/sudoers.d/vpn-ipsec-client"
+            echo "E adicione a linha:"
+            echo "  $INSTALLING_USER ALL=(ALL) NOPASSWD: /usr/sbin/ipsec"
+            rm -f "$TEMP_DIR/SUDOERS_TEMP"
+            exit 1
+        fi
+        rm -f "$TEMP_DIR/SUDOERS_TEMP"
+    fi
+
+    echo "Configuração concluída!"
 fi
+
 exit 0
 EOF
 
@@ -70,12 +154,23 @@ EOF
 cat > "$TEMP_DIR/DEBIAN/postrm" << 'EOF'
 #!/bin/sh
 set -e
-if [ "$1" = "remove" ]; then
+
+# Remover regra de sudoers se existir
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    echo "Removendo regra de sudoers do VPN IPsec Client..."
+    SUDOERS_FILE="/etc/sudoers.d/vpn-ipsec-client"
+    if [ -f "$SUDOERS_FILE" ]; then
+        rm -f "$SUDOERS_FILE"
+        echo "Regra de sudoers removida."
+    fi
+
+    # Atualizar cache de ícones
     echo "Atualizando cache de ícones..."
     if command -v gtk-update-icon-cache >/dev/null 2>&1; then
         gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor || true
     fi
 fi
+
 exit 0
 EOF
 
@@ -116,17 +211,44 @@ cat > "$TEMP_DIR/usr/share/applications/$APP_NAME.desktop" << EOF
 Name=VPN IPsec Client
 Exec=$APP_NAME
 Type=Application
-Icon=/usr/share/icons/hicolor/scalable/apps/$APP_NAME.svg
-Categories=Network;
+Icon=vpn-ipsec-client
+StartupWMClass=vpn-ipsec-client
+Categories=Network;Utility;
 Terminal=false
-Comment=Cliente VPN IPsec para Linux
+StartupNotify=true
+Comment=Cliente VPN IPsec para Linux com interface gráfica
 EOF
 
-# Copiar ícone ou criar fallback
-if [ -f "$PROJECT_ROOT/src/assets/icon.svg" ]; then
-    cp "$PROJECT_ROOT/src/assets/icon.svg" "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps/$APP_NAME.svg"
+# Copiar ícones PNG em múltiplos tamanhos
+ICON_SIZES="16x16 24x24 32x32 48x48 64x64 128x128 256x256 512x512"
+ICON_SOURCE_DIR="$PROJECT_ROOT/packaging/icons_output/icons/hicolor"
+
+if [ -d "$ICON_SOURCE_DIR" ]; then
+    echo "Copiando ícones PNG de $ICON_SOURCE_DIR..."
+    for size in $ICON_SIZES; do
+        SRC="$ICON_SOURCE_DIR/$size/apps/$APP_NAME.png"
+        DEST_DIR="$TEMP_DIR/usr/share/icons/hicolor/$size/apps"
+        if [ -f "$SRC" ]; then
+            mkdir -p "$DEST_DIR"
+            cp "$SRC" "$DEST_DIR/"
+            echo "  ✓ Copiado ícone ${size}.png"
+        else
+            echo "  ✗ Ícone ${size}.png não encontrado"
+        fi
+    done
+
+    # Também copiar o SVG para suporte a escalonamento
+    if [ -f "$PROJECT_ROOT/src/assets/icon.svg" ]; then
+        mkdir -p "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps"
+        cp "$PROJECT_ROOT/src/assets/icon.svg" "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps/$APP_NAME.svg"
+        echo "  ✓ Copiado SVG para scalable"
+    fi
 else
-    # Criar ícone temporário como fallback
+    echo "AVISO: Diretório de ícones PNG não encontrado: $ICON_SOURCE_DIR"
+    echo "Usando fallback com ícone SVG simples..."
+
+    # Criar ícone SVG temporário como fallback
+    mkdir -p "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps"
     cat > "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps/$APP_NAME.svg" << 'SVGEOF'
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 100 100">
   <rect width="100" height="100" fill="#3498db"/>
@@ -137,7 +259,8 @@ fi
 
 # Ajustar permissões
 chmod 644 "$TEMP_DIR/usr/share/applications/$APP_NAME.desktop"
-chmod 644 "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps/$APP_NAME.svg"
+# Aplicar permissões em todos os ícones instalados
+find "$TEMP_DIR/usr/share/icons" -name "$APP_NAME.*" -exec chmod 644 {} \; 2>/dev/null || true
 
 echo "Estrutura do pacote criada com sucesso. Arquivos:"
 find "$TEMP_DIR" -type f | sort
