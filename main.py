@@ -33,6 +33,12 @@ def main() -> None:
     """
     app = QApplication(sys.argv)
 
+    # Set application name for proper window class (WM_CLASS) association on Linux (X11/Wayland)
+    app.setApplicationName("vpn-ipsec-client")
+
+    # Set application desktop file name for proper desktop entry association
+    app.setDesktopFileName("vpn-ipsec-client")
+
     # Set the application style to match the system theme (important for Deepin)
     app.setStyle("Fusion")
 

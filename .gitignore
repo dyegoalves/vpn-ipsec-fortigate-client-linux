@@ -14,3 +14,4 @@ packaging/appimage/AppDir/
 # Diretório de empacotamento Debian
 packaging/deb/*.deb
 packaging/deb/tmp
+packaging/icons_output/*   

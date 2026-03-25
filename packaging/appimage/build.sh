@@ -51,29 +51,64 @@ Name=VPN IPsec Client
 Exec=VPN-IPsec-Client
 Type=Application
 Icon=vpn-ipsec-client
+StartupWMClass=vpn-ipsec-client
 Categories=Network;
 Terminal=false
 Comment=Cliente VPN IPsec para Linux
 EOF
 
-echo "Criando ícone..."
-# Copiar o ícone real da aplicação
-if [ -f "$PROJECT_ROOT/src/assets/icon.svg" ]; then
-    cp "$PROJECT_ROOT/src/assets/icon.svg" ${APP_DIR}/usr/share/icons/hicolor/scalable/apps/vpn-ipsec-client.svg
-    cp "$PROJECT_ROOT/src/assets/icon.svg" ${APP_DIR}/vpn-ipsec-client.svg
+# Gerar ícones PNG se o gerador estiver disponível
+ICON_GENERATOR="$PROJECT_ROOT/packaging/generate_icons.py"
+if [ -f "$ICON_GENERATOR" ]; then
+    echo "Gerando ícones PNG a partir do SVG..."
+    if python3 "$ICON_GENERATOR" > /dev/null 2>&1; then
+        echo "✓ Ícones PNG gerados com sucesso."
+    else
+        echo "⚠ AVISO: Falha ao gerar ícones automaticamente."
+    fi
 else
-    # Criar ícone temporário SVG como fallback
+    echo "⚠ AVISO: Gerador de ícones não encontrado: $ICON_GENERATOR"
+fi
+
+echo "Instalando ícones no AppDir..."
+# Copiar ícones PNG em múltiplos tamanhos
+ICON_SIZES="16x16 24x24 32x32 48x48 64x64 128x128 256x256 512x512"
+ICON_SOURCE_DIR="$PROJECT_ROOT/packaging/icons_output/icons/hicolor"
+
+if [ -d "$ICON_SOURCE_DIR" ]; then
+    for size in $ICON_SIZES; do
+        SRC="$ICON_SOURCE_DIR/$size/apps/vpn-ipsec-client.png"
+        if [ -f "$SRC" ]; then
+            mkdir -p ${APP_DIR}/usr/share/icons/hicolor/$size/apps
+            cp "$SRC" ${APP_DIR}/usr/share/icons/hicolor/$size/apps/
+            echo "  ✓ Copiado ícone ${size}.png"
+        fi
+    done
+else
+    echo "  ⚠ Diretório de ícones PNG não encontrado, usando apenas SVG."
+fi
+
+# Copiar SVG para escalonamento (fallback)
+if [ -f "$PROJECT_ROOT/src/assets/icon.svg" ]; then
+    mkdir -p ${APP_DIR}/usr/share/icons/hicolor/scalable/apps
+    cp "$PROJECT_ROOT/src/assets/icon.svg" ${APP_DIR}/usr/share/icons/hicolor/scalable/apps/vpn-ipsec-client.svg
+    echo "  ✓ Copiado SVG para scalable"
+else
+    # Criar SVG de fallback
     cat > ${APP_DIR}/usr/share/icons/hicolor/scalable/apps/vpn-ipsec-client.svg << EOF
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 100 100">
   <rect width="100" height="100" fill="#3498db"/>
   <text x="50" y="55" font-family="Arial" font-size="40" fill="white" text-anchor="middle">VPN</text>
 </svg>
 EOF
-    cp ${APP_DIR}/usr/share/icons/hicolor/scalable/apps/vpn-ipsec-client.svg ${APP_DIR}/vpn-ipsec-client.svg
 fi
 
-# Copiar o ícone para o diretório principal do AppDir
-cp ${APP_DIR}/usr/share/icons/hicolor/scalable/apps/vpn-ipsec-client.svg ${APP_DIR}/vpn-ipsec-client.svg
+# Copiar ícone para o diretório raiz do AppDir (usar o 256x256 como principal)
+if [ -f "$PROJECT_ROOT/packaging/icons_output/icons/hicolor/256x256/apps/vpn-ipsec-client.png" ]; then
+    cp "$PROJECT_ROOT/packaging/icons_output/icons/hicolor/256x256/apps/vpn-ipsec-client.png" ${APP_DIR}/vpn-ipsec-client.png
+else
+    cp ${APP_DIR}/usr/share/icons/hicolor/scalable/apps/vpn-ipsec-client.svg ${APP_DIR}/vpn-ipsec-client.svg
+fi
 
 # Copiar o desktop file para o diretório raiz do AppDir
 cp ${APP_DIR}/usr/share/applications/${APP_NAME}.desktop ${APP_DIR}/${APP_NAME}.desktop

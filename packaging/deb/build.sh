@@ -17,6 +17,23 @@ echo "Iniciando processo de empacotamento para .deb..."
 echo "Pacote: $DEBIAN_PACKAGE_NAME"
 echo "Diretório temporário: $TEMP_DIR"
 
+# Gerar ícones PNG se não existirem
+ICON_GENERATOR="$PROJECT_ROOT/packaging/generate_icons.py"
+if [ -f "$ICON_GENERATOR" ]; then
+    echo ""
+    echo "Gerando ícones PNG a partir do SVG..."
+    if python3 "$ICON_GENERATOR" > /dev/null 2>&1; then
+        echo "✓ Ícones gerados com sucesso."
+    else
+        echo "⚠ AVISO: Falha ao gerar ícones automaticamente."
+        echo "  Execute manualmente: python3 packaging/generate_icons.py"
+        echo "  Continuando com ícones de fallback..."
+    fi
+else
+    echo "⚠ AVISO: Gerador de ícones não encontrado: $ICON_GENERATOR"
+    echo "  Ícones PNG não serão incluídos no pacote."
+fi
+
 # Verificar se está rodando no Linux
 if [[ "$OSTYPE" != "linux-gnu"* ]]; then
     echo "Este script só pode ser executado no Linux"
@@ -37,7 +54,7 @@ mkdir -p "$TEMP_DIR/DEBIAN"
 mkdir -p "$TEMP_DIR/usr/bin"
 mkdir -p "$TEMP_DIR/usr/lib/$APP_NAME"
 mkdir -p "$TEMP_DIR/usr/share/applications"
-mkdir -p "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps"
+mkdir -p "$TEMP_DIR/usr/share/icons/hicolor"
 
 # Criar arquivo control
 cat > "$TEMP_DIR/DEBIAN/control" << EOF
@@ -195,17 +212,43 @@ Name=VPN IPsec Client
 Exec=$APP_NAME
 Type=Application
 Icon=vpn-ipsec-client
+StartupWMClass=vpn-ipsec-client
 Categories=Network;Utility;
 Terminal=false
 StartupNotify=true
 Comment=Cliente VPN IPsec para Linux com interface gráfica
 EOF
 
-# Copiar ícone ou criar fallback
-if [ -f "$PROJECT_ROOT/src/assets/icon.svg" ]; then
-    cp "$PROJECT_ROOT/src/assets/icon.svg" "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps/$APP_NAME.svg"
+# Copiar ícones PNG em múltiplos tamanhos
+ICON_SIZES="16x16 24x24 32x32 48x48 64x64 128x128 256x256 512x512"
+ICON_SOURCE_DIR="$PROJECT_ROOT/packaging/icons_output/icons/hicolor"
+
+if [ -d "$ICON_SOURCE_DIR" ]; then
+    echo "Copiando ícones PNG de $ICON_SOURCE_DIR..."
+    for size in $ICON_SIZES; do
+        SRC="$ICON_SOURCE_DIR/$size/apps/$APP_NAME.png"
+        DEST_DIR="$TEMP_DIR/usr/share/icons/hicolor/$size/apps"
+        if [ -f "$SRC" ]; then
+            mkdir -p "$DEST_DIR"
+            cp "$SRC" "$DEST_DIR/"
+            echo "  ✓ Copiado ícone ${size}.png"
+        else
+            echo "  ✗ Ícone ${size}.png não encontrado"
+        fi
+    done
+
+    # Também copiar o SVG para suporte a escalonamento
+    if [ -f "$PROJECT_ROOT/src/assets/icon.svg" ]; then
+        mkdir -p "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps"
+        cp "$PROJECT_ROOT/src/assets/icon.svg" "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps/$APP_NAME.svg"
+        echo "  ✓ Copiado SVG para scalable"
+    fi
 else
-    # Criar ícone temporário como fallback
+    echo "AVISO: Diretório de ícones PNG não encontrado: $ICON_SOURCE_DIR"
+    echo "Usando fallback com ícone SVG simples..."
+
+    # Criar ícone SVG temporário como fallback
+    mkdir -p "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps"
     cat > "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps/$APP_NAME.svg" << 'SVGEOF'
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 100 100">
   <rect width="100" height="100" fill="#3498db"/>
@@ -216,7 +259,8 @@ fi
 
 # Ajustar permissões
 chmod 644 "$TEMP_DIR/usr/share/applications/$APP_NAME.desktop"
-chmod 644 "$TEMP_DIR/usr/share/icons/hicolor/scalable/apps/$APP_NAME.svg"
+# Aplicar permissões em todos os ícones instalados
+find "$TEMP_DIR/usr/share/icons" -name "$APP_NAME.*" -exec chmod 644 {} \; 2>/dev/null || true
 
 echo "Estrutura do pacote criada com sucesso. Arquivos:"
 find "$TEMP_DIR" -type f | sort
