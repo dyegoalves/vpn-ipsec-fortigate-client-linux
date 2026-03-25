@@ -45,6 +45,7 @@ Para garantir o funcionamento correto da aplicação, é essencial seguir os pas
 3. Instale os pacotes Python necessários:
 
    ```bash
+   cd vpn-ipsec-fortigate-client-linux
    pip install --break-system-packages -r requirements.txt  # ou use um ambiente virtual
    ```
 4. Instale o StrongSwan e seus plugins (dependências do sistema):
@@ -52,7 +53,11 @@ Para garantir o funcionamento correto da aplicação, é essencial seguir os pas
    ```bash
    sudo apt update
    sudo apt install strongswan strongswan-pki strongswan-swanctl libstrongswan-extra-plugins
+    
+   sudo apt update
+   sudo apt install -y libxcb-cursor0 libxcb-xinerama0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-shape0 libxkbcommon-x11-0
    ```
+
 
 ## Uso
 
@@ -113,9 +118,13 @@ conn fortigate-vpn  # Nome da conexão, pode ser alterado
      ```
    * Adicione suas credenciais no formato apropriado. Por exemplo, para PSK e EAP com senha:
 
-     ```
-     : PSK "sua_chave_secreta"
-     <eap_identity> : EAP "sua_senha"
+     
+     ```bash
+      : PSK "chave_compatilhada"
+      <eap_identity> : EAP "senha_da_vpn"
+     
+      : PSK "chave_compatilhada"
+      usuariodavpn : EAP "senha_da_vpn"
      ```
    
     
@@ -125,6 +134,7 @@ conn fortigate-vpn  # Nome da conexão, pode ser alterado
    * Após editar os arquivos, é uma boa prática verificar a sintaxe para evitar erros:
      ```bash
      sudo ipsec rereadall
+     sudo ipsec restart
      sudo ipsec status
      ```
    * Se houver erros, o comando `ipsec rereadall` geralmente indicará onde eles estão.
@@ -132,7 +142,7 @@ conn fortigate-vpn  # Nome da conexão, pode ser alterado
 
    * Para que as novas configurações sejam carregadas, reinicie o serviço strongSwan:
      ```bash
-     sudo systemctl restart strongswan
+     sudo ipsec restart
      ```
 
 Após seguir esses passos, a aplicação cliente VPN IPsec deverá detectar e permitir que você gerencie suas conexões configuradas.
