@@ -42,20 +42,25 @@ Para garantir o funcionamento correto da aplicação, é essencial seguir os pas
 
 1. Clone ou baixe este repositório.
 2. Navegue até o diretório do projeto.
-3. Instale os pacotes Python necessários:
+3. (Recomendado) Crie um ambiente virtual:
+
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   ```
+4. Instale os pacotes Python necessários:
 
    ```bash
    cd vpn-ipsec-fortigate-client-linux
    pip install --break-system-packages -r requirements.txt  # ou use um ambiente virtual
    ```
-4. Instale o StrongSwan e seus plugins (dependências do sistema):
+5. Instale o StrongSwan e seus plugins (dependências do sistema):
 
    ```bash
-   sudo apt update
-   sudo apt install strongswan strongswan-pki strongswan-swanctl libstrongswan-extra-plugins
-    
-   sudo apt update
-   sudo apt install -y libxcb-cursor0 libxcb-xinerama0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-shape0 libxkbcommon-x11-0
+    sudo apt update
+    sudo apt install -y strongswan strongswan-pki strongswan-swanctl libstrongswan-extra-plugins \
+      libxcb-cursor0 libxcb-xinerama0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
+      libxcb-render-util0 libxcb-shape0 libxkbcommon-x11-0
    ```
 
 
@@ -64,9 +69,13 @@ Para garantir o funcionamento correto da aplicação, é essencial seguir os pas
 Para executar a aplicação:
 
 ```bash
-git clone https://github.com/dyegoalves/vpn-ipsec-fortigate-client-linux.git
-cd vpn-ipsec-fortigate-client-linux
 python main.py
+```
+
+Se os comandos IPsec exigirem privilégios administrativos, execute com `sudo`:
+
+```bash
+sudo python main.py
 ```
 
 ## Configuração de Conexões IPsec
@@ -119,13 +128,10 @@ conn fortigate-vpn  # Nome da conexão, pode ser alterado
    * Adicione suas credenciais no formato apropriado. Por exemplo, para PSK e EAP com senha:
 
      
-     ```bash
-      : PSK "chave_compatilhada"
-      <eap_identity> : EAP "senha_da_vpn"
-     
-      : PSK "chave_compatilhada"
-      usuariodavpn : EAP "senha_da_vpn"
-     ```
+      ```bash
+       : PSK "chave_compartilhada"
+       <eap_identity> : EAP "senha_da_vpn"
+      ```
    
     
    * **Importante**: Mantenha este arquivo seguro, pois ele contém informações sensíveis.
