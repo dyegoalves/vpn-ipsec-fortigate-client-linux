@@ -34,7 +34,7 @@ command -v pip >/dev/null 2>&1 || { echo "pip é necessário mas não está inst
 echo "Criando estrutura do AppDir..."
 rm -rf ${APP_DIR}
 mkdir -p ${APP_DIR}/usr/bin
-mkdir -p ${APP_DIR}/usr/lib/python3.10/site-packages
+mkdir -p ${APP_DIR}/usr/lib/python3/site-packages
 mkdir -p ${APP_DIR}/usr/share/applications
 mkdir -p ${APP_DIR}/usr/share/icons/hicolor/256x256/apps
 mkdir -p ${APP_DIR}/usr/share/icons/hicolor/scalable/apps
@@ -116,13 +116,14 @@ cp ${APP_DIR}/usr/share/applications/${APP_NAME}.desktop ${APP_DIR}/${APP_NAME}.
 echo "Instalando dependências no AppDir..."
 
 # Instalar dependências diretamente no AppDir
-pip install --target ${APP_DIR}/usr/lib/python3.10/site-packages -r "$PROJECT_ROOT/requirements.txt"
+pip install --target ${APP_DIR}/usr/lib/python3/site-packages -r "$PROJECT_ROOT/requirements.txt"
 
 # Criar script de inicialização
 cat > ${APP_DIR}/usr/bin/VPN-IPsec-Client << 'EOF'
 #!/bin/bash
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-export PYTHONPATH="${SCRIPT_DIR}/../lib/python3.10/site-packages:${PYTHONPATH}"
+PYLIB="${SCRIPT_DIR}/../lib/python3/site-packages"
+export PYTHONPATH="${PYLIB}:${PYTHONPATH:-}"
 cd "${SCRIPT_DIR}"
 exec python3 main.py "$@"
 EOF
