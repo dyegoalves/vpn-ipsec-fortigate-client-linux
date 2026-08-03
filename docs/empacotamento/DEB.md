@@ -149,5 +149,14 @@ sudo -l -U $USER | grep ipsec
 vpn-ipsec-client
 ```
 
+## Build via Container (Bazzite/Fedora - sem dpkg local)
+
+```bash
+podman run --rm -v "$PWD:/workspace:z" -w /workspace debian:bookworm bash -c "
+  apt-get update -qq && apt-get install -y -qq dpkg-dev python3 >/dev/null &&
+  cd packaging/deb && bash build.sh
+"
+```
+
 ---
 *[[README|← Voltar]] | [[empacotamento/Packaging-Overview|Empacotamento]] | [[empacotamento/AppImage|AppImage]]*

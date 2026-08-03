@@ -87,6 +87,44 @@ cd packaging/deb
 ./packaging/menu_build.sh
 ```
 
+## Build via Container (Fedora/Bazzite - sem dpkg/rpmbuild local)
+
+```bash
+# Build .deb em container Debian
+podman run --rm -v "$PWD:/workspace:z" -w /workspace debian:bookworm bash -c "
+  apt-get update -qq && apt-get install -y -qq dpkg-dev python3 >/dev/null &&
+  cd packaging/deb && bash build.sh
+"
+
+# Build .rpm em container Fedora (ou use o script pronto)
+./packaging/rpm/build.sh
+```
+
+## Publicar Artefatos na Release
+
+```bash
+# Anexar artefatos à release existente
+gh release upload v0.6.0 \
+  packaging/appimage/VPN-IPsec-Client-0.6.0-x86_64.AppImage \
+  packaging/deb/vpn-ipsec-client_0.6.0_amd64.deb \
+  packaging/vpn-ipsec-client-0.6.0-1.noarch.rpm
+
+# Verificar artefatos
+gh release view v0.6.0 --json assets --jq '.assets[].name'
+```
+
+## Release Notes Padrão
+
+```bash
+gh release create v0.6.0 --title "v0.6.0 - <descrição>" --notes "
+## v0.6.0
+### Novo
+- ...
+### Features
+- ...
+"
+```
+
 ## Variáveis de Build
 
 | Variável | Descrição | Padrão |
