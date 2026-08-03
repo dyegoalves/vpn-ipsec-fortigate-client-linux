@@ -15,4 +15,4 @@ packaging/appimage/AppDir/
 packaging/deb/*.deb
 packaging/deb/tmp
 packaging/icons_output/*   
-.venv
+.venv*.rpm
