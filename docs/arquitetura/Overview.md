@@ -33,23 +33,23 @@ related:
 
 ```
 ┌─ GUI Layer (UI)
-│  │  ├─ [[MainWindow]]
-│  │  ├─ [[ConnectionConfigWidget]]
-│  │  ├─ [[ToggleSwitchButton]]
-│  │  └─ [[StatusLogWidget]]
+│  │  ├─ [[componentes/MainWindow]]
+│  │  ├─ [[componentes/ConnectionConfigWidget]]
+│  │  ├─ [[componentes/ToggleSwitchButton]]
+│  │  └─ [[componentes/StatusLogWidget]]
 │
 ├─ Business Logic Layer
-│  │  └─ [[IPsecManager]]
+│  │  └─ [[componentes/IPsecManager]]
 │
 ├─ Service Layer
-│  │  ├─ [[IPsecCommander]]
-│  │  └─ [[IPsecConfigParser]]
+│  │  ├─ [[componentes/IPsecCommander]]
+│  │  └─ [[componentes/IPsecConfigParser]]
 │
 ├─ Configuration Layer
-│  │  └─ [[AppConfig]]
+│  │  └─ [[componentes/AppConfig]]
 │
 └─ Logging Layer
-   │  └─ [[AppLoggers]]
+   │  └─ [[componentes/AppLoggers]]
 ```
 
 ## Padrões Utilizados
