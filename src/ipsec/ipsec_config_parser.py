@@ -2,7 +2,13 @@ import os
 import re
 from typing import List, Optional, Tuple
 
-from ..config.app_config import IPSEC_CONFIG_PATHS, IPSEC_D_PATH
+from ..config.app_config import IPSEC_CONFIG_PATHS, IPSEC_D_PATH, SWANCTL_BIN, USE_SWANCTL
+
+# Diretórios de config adicionais no formato swanctl (strongSwan 6+ / Fedora)
+SWANCTL_CONF_DIRS = [
+    "/etc/strongswan/swanctl/conf.d",
+    "/etc/swanctl/conf.d",
+]
 
 
 class IPsecConfigParser:
@@ -15,22 +21,41 @@ class IPsecConfigParser:
         Coleta todos os caminhos de arquivos de configuração IPsec relevantes.
         """
         config_files = IPSEC_CONFIG_PATHS.copy()
-        if os.path.exists(IPSEC_D_PATH):
-            for file in os.listdir(IPSEC_D_PATH):
-                if file.endswith(".conf") and not file.endswith("~"):
-                    config_files.append(os.path.join(IPSEC_D_PATH, file))
+        try:
+            if os.path.exists(IPSEC_D_PATH):
+                for file in os.listdir(IPSEC_D_PATH):
+                    if file.endswith(".conf") and not file.endswith("~"):
+                        config_files.append(os.path.join(IPSEC_D_PATH, file))
+        except PermissionError:
+            pass
+
+        # strongSwan 6+: configs em /etc/strongswan/swanctl/conf.d/*.conf
+        if USE_SWANCTL or SWANCTL_BIN:
+            for conf_dir in SWANCTL_CONF_DIRS:
+                try:
+                    if os.path.exists(conf_dir) and os.path.isdir(conf_dir):
+                        for file in os.listdir(conf_dir):
+                            if file.endswith(".conf") and not file.endswith("~"):
+                                config_files.append(os.path.join(conf_dir, file))
+                except PermissionError:
+                    pass
         return config_files
 
     def _connection_exists_in_file(self, conn_name: str, file_path: str) -> bool:
         """
         Verifica se uma conexão específica existe em um arquivo de configuração.
+        Suporta o formato legado (conn NAME) e o formato swanctl (NAME { ... }).
         """
         if not os.path.exists(file_path):
             return False
         with open(file_path, "r") as f:
             content = f.read()
-            pattern = rf"^\s*conn\s+{re.escape(conn_name)}\s*($|[\s#])"
-            return bool(re.search(pattern, content, re.MULTILINE))
+            legacy_pattern = rf"^\s*conn\s+{re.escape(conn_name)}\s*($|[\s#])"
+            swanctl_pattern = rf"^\s*{re.escape(conn_name)}\s*\{{"
+            return bool(
+                re.search(legacy_pattern, content, re.MULTILINE)
+                or re.search(swanctl_pattern, content, re.MULTILINE)
+            )
 
     def _parse_key_value_pairs_from_section(self, section_content: str) -> dict:
         """
@@ -54,6 +79,7 @@ class IPsecConfigParser:
     def _parse_connections_from_file(self, file_path: str) -> List[str]:
         """
         Extrai os nomes das conexões de um arquivo de configuração IPsec.
+        Suporta o formato legado (conn NAME) e o formato swanctl (NAME { ... }).
         """
         connections = []
         if os.path.exists(file_path):
@@ -67,6 +93,23 @@ class IPsecConfigParser:
                         if not conn.strip().startswith("#")
                     ]
                 )
+                # Formato swanctl: apenas dentro do bloco "connections { ... }"
+                if USE_SWANCTL:
+                    match = re.search(
+                        r"^\s*connections\s*\{(.*?)^\s*\}\s*$",
+                        content,
+                        re.MULTILINE | re.DOTALL,
+                    )
+                    if match:
+                        block = match.group(1)
+                        swanctl_conns = re.findall(
+                            r"^\s{4}([a-zA-Z0-9_-]+)\s*\{(?:\s*$)",
+                            block,
+                            re.MULTILINE,
+                        )
+                        for c in swanctl_conns:
+                            if c not in connections:
+                                connections.append(c)
         return connections
 
     def find_connection_file(self, conn_name: str) -> Optional[str]:

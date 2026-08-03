@@ -34,8 +34,59 @@ DEFAULT_MESSAGES = {
 }
 
 # --- IPsec Configuration Paths ---
-IPSEC_CONFIG_PATHS = ["/etc/ipsec.conf"]
-IPSEC_D_PATH = "/etc/ipsec.d/"
+# Caminhos configuráveis via variáveis de ambiente (importante em distros
+# imutáveis/OSTree como o Bazzite, onde /usr é somente-leitura).
+#   VPN_IPSEC_CONF    -> arquivo de configuração principal (padrão /etc/ipsec.conf
+#                        ou /etc/strongswan/ipsec.conf no strongSwan 6+/Fedora)
+#   VPN_IPSEC_D_PATH  -> diretório de configs adicionais (padrão /etc/ipsec.d/)
+#   VPN_IPSEC_BIN     -> binário do IPsec (padrão: 'strongswan' se disponível, senão 'ipsec')
+
+
+def _detect_ipsec_bin() -> str:
+    """Retorna o binário do IPsec disponível no sistema."""
+    configured = os.environ.get("VPN_IPSEC_BIN", "").strip()
+    if configured:
+        return configured
+    import shutil
+
+    for candidate in ("strongswan", "ipsec"):
+        path = shutil.which(candidate)
+        if path:
+            return path
+    return "ipsec"
+
+
+IPSEC_BIN = _detect_ipsec_bin()
+
+# No strongSwan 6+ (Fedora) o config principal fica em /etc/strongswan/ipsec.conf
+_strongswan_conf = "/etc/strongswan/ipsec.conf"
+if "strongswan" in IPSEC_BIN and os.path.exists(_strongswan_conf):
+    DEFAULT_CONF = _strongswan_conf
+    DEFAULT_D_PATH = "/etc/strongswan/ipsec.d"
+else:
+    DEFAULT_CONF = "/etc/ipsec.conf"
+    DEFAULT_D_PATH = "/etc/ipsec.d"
+
+IPSEC_CONFIG_PATHS = [os.environ.get("VPN_IPSEC_CONF", DEFAULT_CONF)]
+IPSEC_D_PATH = os.environ.get("VPN_IPSEC_D_PATH", DEFAULT_D_PATH)
+
+# strongSwan 6+ usa o utilitário 'swanctl' (vici) em vez da interface 'stroke'
+# do comando legado 'ipsec'/'strongswan up'. Detecta automaticamente.
+def _detect_swanctl() -> str:
+    configured = os.environ.get("VPN_SWANCTL_BIN", "").strip()
+    if configured:
+        return configured
+    import shutil
+
+    for candidate in ("swanctl", "swanctl-legacy"):
+        path = shutil.which(candidate)
+        if path:
+            return path
+    return ""
+
+SWANCTL_BIN = _detect_swanctl()
+# Se encontrou swanctl e o binário é strongswan, usa a interface vici (swanctl)
+USE_SWANCTL = bool(SWANCTL_BIN) and "strongswan" in IPSEC_BIN
 
 # --- Log File ---
 # Usar um único arquivo de log organizado dentro de ~/.vpnlogs/

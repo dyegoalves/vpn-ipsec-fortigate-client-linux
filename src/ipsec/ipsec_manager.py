@@ -10,7 +10,13 @@ import subprocess
 import re
 from typing import List, Optional, Tuple
 
-from ..config.app_config import IPSEC_CONFIG_PATHS, IPSEC_D_PATH
+from ..config.app_config import (
+    IPSEC_CONFIG_PATHS,
+    IPSEC_D_PATH,
+    IPSEC_BIN,
+    SWANCTL_BIN,
+    USE_SWANCTL,
+)
 from .ipsec_config_parser import IPsecConfigParser
 from .ipsec_commander import IPsecCommander
 
@@ -31,16 +37,19 @@ class IPsecManager:
         """
         Carrega as conexões IPsec a partir dos arquivos de configuração.
         """
-        result = subprocess.run(["which", "ipsec"], capture_output=True, text=True)
+        if USE_SWANCTL:
+            result = subprocess.run(["which", SWANCTL_BIN], capture_output=True, text=True)
+        else:
+            result = subprocess.run(["which", IPSEC_BIN], capture_output=True, text=True)
         if result.returncode != 0:
             self.connections = []
             return []
 
         connections = []
         for config_file in self.config_parser._get_all_config_files():
-            connections.extend(
-                self.config_parser._parse_connections_from_file(config_file)
-            )
+            for conn in self.config_parser._parse_connections_from_file(config_file):
+                if conn not in connections:
+                    connections.append(conn)
 
         self.connections = connections
         return connections
