@@ -1,6 +1,9 @@
+import os
 import subprocess
 import re
 from typing import Tuple
+
+from ..config.app_config import IPSEC_CONFIG_PATHS, IPSEC_D_PATH
 
 
 class IPsecCommander:
@@ -137,17 +140,17 @@ class IPsecCommander:
         """
         try:
             # Procurar por definições de conexão em arquivos de configuração
-            import os
-            
-            # Verificar no arquivo principal
-            if os.path.exists("/etc/ipsec.conf"):
-                with open("/etc/ipsec.conf", "r") as f:
-                    content = f.read()
-                    if re.search(rf"^\s*conn\s+{re.escape(conn_name)}\b", content, re.MULTILINE | re.IGNORECASE):
-                        return True
-            
+
+            # Verificar nos arquivos de configuração principais
+            for config_file in IPSEC_CONFIG_PATHS:
+                if os.path.exists(config_file):
+                    with open(config_file, "r") as f:
+                        content = f.read()
+                        if re.search(rf"^\s*conn\s+{re.escape(conn_name)}\b", content, re.MULTILINE | re.IGNORECASE):
+                            return True
+
             # Verificar nos arquivos do diretório ipsec.d
-            ipsec_d_path = "/etc/ipsec.d/"
+            ipsec_d_path = IPSEC_D_PATH
             if os.path.exists(ipsec_d_path) and os.path.isdir(ipsec_d_path):
                 for file_name in os.listdir(ipsec_d_path):
                     if file_name.endswith(('.conf', '.ipsec', '.cfg')):

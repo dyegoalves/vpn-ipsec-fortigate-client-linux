@@ -72,6 +72,23 @@ Para executar a aplicação:
 python main.py
 ```
 
+## Port para Bazzite (Fedora Atomic / OSTree)
+
+O **Bazzite** é uma Fedora imutável (`rpm-ostree`): `/usr` é somente-leitura, e o
+strongSwan não vem instalado. Use o instalador dedicado:
+
+```bash
+sudo bash packaging/bazzite/install.sh
+```
+
+Ele instala o strongSwan via `rpm-ostree` (exige reboot), cria um venv
+isolado com PySide6, configura o sudo **NOPASSWD** para o `ipsec` e instala o
+comando `vpn-ipsec-client`. Configuração de exemplo em
+`packaging/bazzite/example.ipsec.conf` e detalhes em `packaging/bazzite/README.md`.
+
+Caminhos IPsec configuráveis via ambiente (`VPN_IPSEC_CONF`, `VPN_IPSEC_D_PATH`)
+para contornar o root imutável se necessário.
+
 Se os comandos IPsec exigirem privilégios administrativos, execute com `sudo`:
 
 ```bash

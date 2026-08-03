@@ -34,8 +34,12 @@ DEFAULT_MESSAGES = {
 }
 
 # --- IPsec Configuration Paths ---
-IPSEC_CONFIG_PATHS = ["/etc/ipsec.conf"]
-IPSEC_D_PATH = "/etc/ipsec.d/"
+# Caminhos configuráveis via variáveis de ambiente (importante em distros
+# imutáveis/OSTree como o Bazzite, onde /usr é somente-leitura).
+#   VPN_IPSEC_CONF    -> arquivo de configuração principal (padrão /etc/ipsec.conf)
+#   VPN_IPSEC_D_PATH  -> diretório de configs adicionais (padrão /etc/ipsec.d/)
+IPSEC_CONFIG_PATHS = [os.environ.get("VPN_IPSEC_CONF", "/etc/ipsec.conf")]
+IPSEC_D_PATH = os.environ.get("VPN_IPSEC_D_PATH", "/etc/ipsec.d")
 
 # --- Log File ---
 # Usar um único arquivo de log organizado dentro de ~/.vpnlogs/
