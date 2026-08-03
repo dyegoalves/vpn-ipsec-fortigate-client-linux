@@ -5,7 +5,7 @@
 
 # --- Funções de Build ---
 
-PROJECT_ROOT="/home/dyegoalves/projects/vpn-ipsec-fortigate-client-linux"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Cria o pacote AppImage
 build_appimage() {
@@ -94,7 +94,7 @@ while true; do
             ;;
         4)
             echo "Saindo do script de empacotamento."
-            return 1
+            exit 1
             ;;
         *)
             echo "Opção inválida: '$choice'. Tente novamente."
