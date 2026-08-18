@@ -155,6 +155,13 @@ if [ -f "$PROJECT_ROOT/src/assets/icon.svg" ]; then
 fi
 ICON_PATH="$ICON_DIR/$APP_NAME.svg"
 
+# Copiar ícones da bandeja
+TRAY_ICON_DIR="$TARGET_HOME/.local/share/icons/hicolor/256x256/apps"
+mkdir -p "$TRAY_ICON_DIR"
+cp "$PROJECT_ROOT/src/assets/vpn-green.png" "$TRAY_ICON_DIR/$APP_NAME-green.png" 2>/dev/null || true
+cp "$PROJECT_ROOT/src/assets/vpn-red.png" "$TRAY_ICON_DIR/$APP_NAME-red.png" 2>/dev/null || true
+echo "    Ícones da bandeja copiados para $TRAY_ICON_DIR"
+
 cat > "$DESKTOP_DIR/$APP_NAME.desktop" <<EOF
 [Desktop Entry]
 Name=VPN IPsec Client

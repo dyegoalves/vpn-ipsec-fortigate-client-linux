@@ -44,6 +44,12 @@ cp -r "$PROJECT_ROOT/src" ${APP_DIR}/usr/bin/
 cp "$PROJECT_ROOT/main.py" ${APP_DIR}/usr/bin/
 cp "$PROJECT_ROOT/requirements.txt" ${APP_DIR}/usr/bin/ 2>/dev/null || echo "requirements.txt não encontrado"
 
+# Copiar ícones da bandeja
+mkdir -p ${APP_DIR}/usr/share/icons/hicolor/256x256/apps
+cp "$PROJECT_ROOT/src/assets/vpn-green.png" ${APP_DIR}/usr/share/icons/hicolor/256x256/apps/vpn-ipsec-client-green.png 2>/dev/null || true
+cp "$PROJECT_ROOT/src/assets/vpn-red.png" ${APP_DIR}/usr/share/icons/hicolor/256x256/apps/vpn-ipsec-client-red.png 2>/dev/null || true
+echo "  ✓ Ícones da bandeja copiados"
+
 echo "Criando atalho da aplicação..."
 cat > ${APP_DIR}/usr/share/applications/${APP_NAME}.desktop << EOF
 [Desktop Entry]

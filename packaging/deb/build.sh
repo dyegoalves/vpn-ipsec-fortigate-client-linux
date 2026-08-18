@@ -184,6 +184,12 @@ cp -r "$PROJECT_ROOT/src" "$TEMP_DIR/usr/lib/$APP_NAME/"
 cp "$PROJECT_ROOT/main.py" "$TEMP_DIR/usr/lib/$APP_NAME/"
 cp "$PROJECT_ROOT/requirements.txt" "$TEMP_DIR/usr/lib/$APP_NAME/" 2>/dev/null || echo "requirements.txt não encontrado"
 
+# Copiar ícones da bandeja
+mkdir -p "$TEMP_DIR/usr/share/icons/hicolor/256x256/apps"
+cp "$PROJECT_ROOT/src/assets/vpn-green.png" "$TEMP_DIR/usr/share/icons/hicolor/256x256/apps/vpn-ipsec-client-green.png" 2>/dev/null || true
+cp "$PROJECT_ROOT/src/assets/vpn-red.png" "$TEMP_DIR/usr/share/icons/hicolor/256x256/apps/vpn-ipsec-client-red.png" 2>/dev/null || true
+echo "  ✓ Ícones da bandeja copiados"
+
 # Criar script de inicialização
 cat > "$TEMP_DIR/usr/bin/$APP_NAME" << 'EOF'
 #!/bin/bash

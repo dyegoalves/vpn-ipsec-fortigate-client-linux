@@ -28,6 +28,15 @@ O script irá:
 
 O pacote resultante será nomeado `vpn-ipsec-client-<version>_amd64.deb` e salvo no diretório `packaging/debian/`.
 
+## Ícones da bandeja
+
+O build inclui os ícones da bandeja:
+
+- `vpn-ipsec-client-green.png` — status conectado
+- `vpn-ipsec-client-red.png` — status desconectado/erro
+
+Esses ícones são copiados de `src/assets/vpn-green.png` e `src/assets/vpn-red.png` para `usr/share/icons/hicolor/256x256/apps/` dentro do pacote.
+
 ## Requisitos
 
 - Linux (baseado em Debian/Ubuntu)

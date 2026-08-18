@@ -25,6 +25,7 @@ docs/
 │   └── Modulos.md       - Referência técnica de módulos
 ├── componentes/
 │   ├── MainWindow.md
+│   ├── SystemTray.md
 │   ├── IPsecManager.md
 │   ├── IPsecCommander.md
 │   ├── IPsecConfigParser.md

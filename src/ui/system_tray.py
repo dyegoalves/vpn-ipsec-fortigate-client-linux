@@ -108,9 +108,7 @@ class SystemTray(QSystemTrayIcon):
     def update_status(self, status: str, is_connected: bool):
         self._status = status
         self._is_connected = is_connected
-        # O ícone é sempre o do app (escudo azul); o status é informado
-        # pelo tooltip e pelos itens do menu.
-        self.setIcon(self._provider.icon())
+        self.setIcon(self._provider.icon_for_status(status))
         self._update_tooltip()
         self._apply_menu_status()
 
