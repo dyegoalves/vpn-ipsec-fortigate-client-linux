@@ -42,3 +42,9 @@ This project is indexed by GitNexus as **vpn-ipsec-fortigate-client-linux** (693
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
+
+## Git rules
+
+- **Never push automatically.** Do not run `git push` without explicit user confirmation.
+- **Never commit without preview/confirmation.** Do not run `git commit` without first showing what will be committed and getting confirmation.
+- Always stage only intended files. Never commit secrets or keys.
