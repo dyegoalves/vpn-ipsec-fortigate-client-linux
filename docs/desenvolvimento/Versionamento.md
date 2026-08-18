@@ -179,16 +179,18 @@ git branch -d hotfix/vX.Y.Z
 
 ## Convenção de Terminal
 
+- **Commits de desenvolvimento vão em `develop`** — nunca direto em `main`
+- `main` só recebe conteúdo via merge de `release/*` (ou hotfix)
 - O shell pode iniciar na branch `develop` (via `~/.bash_profile`)
-- **Antes de qualquer commit/push, forçar `git checkout main` primeiro**
-- Se commit cair na branch errada: cherry-pick para `main` + reset de `develop` para `main`
 
 ```
-git checkout main          # sempre antes de commitar
+git checkout develop        # dev sempre em develop
 git add <arquivos>
 git commit -m "..."
-git push origin main
+git push origin develop
 ```
+
+Para levar a `develop` para produção, siga o fluxo de release acima (criar `release/vX.Y.Z`, testar, merge em `main`, tag).
 
 ---
 
