@@ -1,5 +1,5 @@
 Name:           vpn-ipsec-client
-Version:        0.8.1
+Version:        0.8.2
 Release:        1
 Summary:        Cliente VPN IPsec para Linux com interface gráfica
 
@@ -53,6 +53,9 @@ cp src/assets/icon.svg %{buildroot}/usr/share/icons/hicolor/scalable/apps/vpn-ip
 pip3 install --break-system-packages -r /usr/lib/vpn-ipsec-client/requirements.txt 2>/dev/null || true
 
 %changelog
+* Tue Aug 18 2026 VPN IPsec Team <dyegoalves@github> - 0.8.2
+- Docs: Git Flow strict rules in AGENTS.md
+
 * Tue Aug 18 2026 VPN IPsec Team <dyegoalves@github> - 0.8.1
 - Fix: open main window on double-click in system tray
 - Docs: versioning workflow with Git Flow
