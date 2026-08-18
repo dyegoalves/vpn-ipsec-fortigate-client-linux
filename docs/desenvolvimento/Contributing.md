@@ -24,6 +24,8 @@ related:
 6. Push: `git push origin feature/nome-da-feature`
 7. Abra um Pull Request
 
+> Para releases e fluxo completo de branches, consulte [[Versionamento|Controle de Versão]].
+
 ## Padrões de Commit
 
 ```
@@ -70,4 +72,4 @@ Inclua:
 - Feedback construtivo
 
 ---
-*[[README|← Voltar]] | [[desenvolvimento/Development-Setup|Setup]] | [[desenvolvimento/Code-Structure|Estrutura de Código]]*
+*[[README|← Voltar]] | [[desenvolvimento/Development-Setup|Setup]] | [[desenvolvimento/Code-Structure|Estrutura de Código]] | [[desenvolvimento/Versionamento|Versionamento]]*

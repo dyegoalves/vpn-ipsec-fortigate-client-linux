@@ -46,7 +46,8 @@ docs/
 ├── desenvolvimento/
 │   ├── Development-Setup.md - Setup do ambiente de desenvolvimento
 │   ├── Code-Structure.md    - Estrutura do código e fluxos
-│   └── Contributing.md      - Como contribuir
+│   ├── Contributing.md      - Como contribuir
+│   └── Versionamento.md     - Git Flow, convenções de commit e processo de release
 └── empacotamento/
     ├── Packaging-Overview.md - Visão geral dos formatos
     ├── AppImage.md           - Criação de AppImage
@@ -64,6 +65,7 @@ docs/
 - 📄 [[README|README Principal]]
 - ⚙️ [[instalacao/Dependencies|Dependências]]
 - 🔧 [[desenvolvimento/Code-Structure|Estrutura de Código]]
+- 🌿 [[desenvolvimento/Versionamento|Controle de Versão]]
 - 📦 [[empacotamento/Packaging-Overview|Empacotamento]]
 
 ---
