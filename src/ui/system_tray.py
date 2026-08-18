@@ -1,7 +1,7 @@
 """Bandeja do sistema (system tray) do Cliente VPN IPsec."""
 
 from PySide6.QtCore import QElapsedTimer, Signal
-from PySide6.QtGui import QAction, QActionGroup, QIcon, QPixmap
+from PySide6.QtGui import QAction, QActionGroup, QIcon
 from PySide6.QtWidgets import QMenu, QSystemTrayIcon
 
 from ..config.app_config import APP_TITLE, CONNECTION_STATES
@@ -37,14 +37,10 @@ class SystemTray(QSystemTrayIcon):
         menu = QMenu()
 
         self.show_action = QAction("Mostrar Janela", menu)
-        self.show_action.setIcon(QIcon(QIcon.fromTheme("window-new").pixmap(16, 16)))
+        self.show_action.setIcon(QIcon.fromTheme("window-new"))
         self.show_action.triggered.connect(self._on_show_triggered)
         menu.addAction(self.show_action)
         menu.addSeparator()
-
-        connections_label = QAction("Conexão:", menu)
-        connections_label.setEnabled(False)
-        menu.addAction(connections_label)
 
         self.connection_group = QActionGroup(menu)
         self.connection_group.setExclusive(True)
@@ -55,16 +51,19 @@ class SystemTray(QSystemTrayIcon):
         menu.addSeparator()
 
         self.connect_action = QAction("Conectar", menu)
+        self.connect_action.setIcon(QIcon.fromTheme("network-connect"))
         self.connect_action.triggered.connect(self.connect_requested)
         menu.addAction(self.connect_action)
 
         self.disconnect_action = QAction("Desconectar", menu)
+        self.disconnect_action.setIcon(QIcon.fromTheme("network-offline"))
         self.disconnect_action.triggered.connect(self.disconnect_requested)
         menu.addAction(self.disconnect_action)
 
         menu.addSeparator()
 
         self.quit_action = QAction("Sair", menu)
+        self.quit_action.setIcon(QIcon.fromTheme("application-exit"))
         self.quit_action.triggered.connect(self.quit_requested)
         menu.addAction(self.quit_action)
 
@@ -73,8 +72,7 @@ class SystemTray(QSystemTrayIcon):
 
     def _add_connection_action(self, menu, conn_name: str):
         action = QAction(conn_name, menu)
-        action.setCheckable(True)
-        action.setChecked(conn_name == self._current_connection)
+        action.setIcon(QIcon.fromTheme("network-vpn"))
         action.triggered.connect(
             lambda checked=False, name=conn_name: self.connection_selected.emit(name)
         )
@@ -97,13 +95,10 @@ class SystemTray(QSystemTrayIcon):
         self._connections = list(connections)
         self._current_connection = current
         self._rebuild_menu()
-        for action in self._connection_actions.values():
-            action.setChecked(action.text() == current)
+        self._apply_menu_status()
 
     def set_current_connection(self, conn_name):
         self._current_connection = conn_name
-        for name, action in self._connection_actions.items():
-            action.setChecked(name == conn_name)
         self._apply_menu_status()
         self._update_tooltip()
 

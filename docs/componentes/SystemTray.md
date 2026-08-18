@@ -56,11 +56,20 @@ tray.set_connections(["vpn-fortigate"], current="vpn-fortigate")
 
 ## Comportamento do Menu
 
-- **Mostrar Janela** - Alterna visibilidade da janela principal
-- **Conexão** - Lista de conexões configuradas
-- **Conectar** - Inicia conexão VPN
-- **Desconectar** - Termina conexão VPN
-- **Sair** - Fecha aplicação
+O menu de contexto é nativo do ambiente (Breeze no KDE Plasma), renderizado pelo desktop — não pelo Qt. Ícones do tema do sistema:
+
+| Ação | Ícone (tema) | Comportamento |
+|---|---|---|
+| Mostrar Janela | `window-new` | Exibe a janela principal (botão, sem toggle) |
+| *Conexões* | `network-vpn` | Lista conexões; clique seleciona |
+| Conectar | `network-connect` | Inicia conexão VPN |
+| Desconectar | `network-offline` | Termina conexão VPN |
+| Sair | `application-exit` | Fecha aplicação |
+
+Notas:
+- **Mostrar Janela** não é checkable — é botão de ação simples (o checkbox foi removido)
+- Ações de conexão **não** são checkable — a conexão ativa é refletida no tooltip e no ícone do tray, não via radio button no menu
+- Ícones em todas as ações tornam a coluna de ícones uniforme (evita espaço vazio à esquerda em ações sem ícone)
 
 ## Comportamento dos Cliques no Ícone
 
