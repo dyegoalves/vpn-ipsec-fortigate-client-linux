@@ -1,6 +1,6 @@
 """Bandeja do sistema (system tray) do Cliente VPN IPsec."""
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import QElapsedTimer, Signal
 from PySide6.QtGui import QAction, QActionGroup
 from PySide6.QtWidgets import QMenu, QSystemTrayIcon
 
@@ -25,6 +25,7 @@ class SystemTray(QSystemTrayIcon):
         self._current_connection = None
         self._is_connected = False
         self._status = CONNECTION_STATES["DISCONNECTED"]
+        self._click_timer = QElapsedTimer()
 
         self.setIcon(self._provider.icon())
         self.setToolTip(APP_TITLE)
@@ -83,7 +84,11 @@ class SystemTray(QSystemTrayIcon):
 
     def _on_activated(self, reason):
         if reason == QSystemTrayIcon.Trigger:
-            self.show_action.trigger()
+            if self._click_timer.isValid() and self._click_timer.elapsed() < 300:
+                self._click_timer.restart()
+                self.show_action.trigger()
+            else:
+                self._click_timer.restart()
 
     def _on_show_toggled(self, checked):
         if checked:
