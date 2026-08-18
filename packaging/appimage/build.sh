@@ -7,7 +7,7 @@ set -e  # Sair se qualquer comando falhar
 
 # Definir variáveis
 APP_NAME="VPN-IPsec-Client"
-APP_VERSION="0.8.2"
+APP_VERSION="0.9.0"
 APP_DIR="AppDir"
 APPIMAGE_NAME="${APP_NAME}-${APP_VERSION}-x86_64.AppImage"
 BUILD_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

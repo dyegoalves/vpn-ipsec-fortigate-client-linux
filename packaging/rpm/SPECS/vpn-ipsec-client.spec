@@ -1,5 +1,5 @@
 Name:           vpn-ipsec-client
-Version:        0.8.2
+Version:        0.9.0
 Release:        1
 Summary:        Cliente VPN IPsec para Linux com interface gráfica
 
@@ -53,6 +53,11 @@ cp src/assets/icon.svg %{buildroot}/usr/share/icons/hicolor/scalable/apps/vpn-ip
 pip3 install --break-system-packages -r /usr/lib/vpn-ipsec-client/requirements.txt 2>/dev/null || true
 
 %changelog
+* Tue Aug 18 2026 VPN IPsec Team <dyegoalves@github> - 0.9.0
+- Feat: theme icons on all tray menu actions
+- Feat: remove checkbox from connection actions and 'Conexão:' label
+- Feat: 'Mostrar Janela' as regular button with window-new icon
+
 * Tue Aug 18 2026 VPN IPsec Team <dyegoalves@github> - 0.8.2
 - Docs: Git Flow strict rules in AGENTS.md
 
