@@ -5,7 +5,7 @@ Summary:        Cliente VPN IPsec para Linux com interface gráfica
 
 License:        MIT
 URL:            https://github.com/dyegoalves/vpn-ipsec-fortigate-client-linux
-BuildArch:      noarch
+BuildArch:      x86_64
 Requires:       python3
 Requires:       strongswan
 Recommends:     python3-pyside6
