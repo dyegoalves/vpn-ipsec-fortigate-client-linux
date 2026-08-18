@@ -47,8 +47,9 @@ vpn-ipsec-client
 O Bazzite GNOME inclui a extensão **AppIndicator** por padrão, então o app roda
 na bandeja sem configuração extra:
 
-- Ícone com cor de status (verde = conectado, âmbar = conectando, cinza =
-  desconectado) + tooltip com a conexão/estado.
+- Ícone do app (escudo azul com cadeado) — o status é mostrado no tooltip
+  (conexão/estado) e nos itens do menu (Conectar/Desconectar habilitados
+  conforme o estado).
 - Menu da bandeja: Mostrar/Ocultar Janela, seleção de conexão, Conectar,
   Desconectar e Sair.
 - Fechar a janela (X) **minimiza para a bandeja** (VPN continua ativa); **Sair**

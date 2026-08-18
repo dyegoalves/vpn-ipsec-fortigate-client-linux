@@ -92,7 +92,7 @@ vpn-ipsec-client
 
 O app roda na bandeja (ícone persistente ao lado do relógio):
 
-- Ícone de status (verde = conectado, âmbar = conectando, cinza = desconectado)
+- Ícone do app (escudo azul com cadeado) — o status é mostrado no tooltip e no menu
 - Menu: Mostrar/Ocultar Janela, seleção de conexão, Conectar/Desconectar, Sair
 - Fechar a janela (X) **minimiza para a bandeja** — VPN permanece ativa
 - **Sair** pela bandeja desconecta a VPN antes de encerrar

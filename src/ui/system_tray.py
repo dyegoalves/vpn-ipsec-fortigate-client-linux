@@ -26,7 +26,7 @@ class SystemTray(QSystemTrayIcon):
         self._is_connected = False
         self._status = CONNECTION_STATES["DISCONNECTED"]
 
-        self.setIcon(self._provider.icon_for_state("disconnected"))
+        self.setIcon(self._provider.icon())
         self.setToolTip(APP_TITLE)
         self._rebuild_menu()
         self.activated.connect(self._on_activated)
@@ -108,14 +108,9 @@ class SystemTray(QSystemTrayIcon):
     def update_status(self, status: str, is_connected: bool):
         self._status = status
         self._is_connected = is_connected
-
-        if "Conectado" in status or status == CONNECTION_STATES["CONNECTED"]:
-            icon_state = "connected"
-        elif "Conectando" in status or status == CONNECTION_STATES["CONNECTING"]:
-            icon_state = "connecting"
-        else:
-            icon_state = "disconnected"
-        self.setIcon(self._provider.icon_for_state(icon_state))
+        # O ícone é sempre o do app (escudo azul); o status é informado
+        # pelo tooltip e pelos itens do menu.
+        self.setIcon(self._provider.icon())
         self._update_tooltip()
         self._apply_menu_status()
 

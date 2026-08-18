@@ -1,23 +1,21 @@
-"""Geração de ícones de bandeja (system tray) tintados conforme o status da VPN."""
+"""Ícone de bandeja (system tray) do Cliente VPN IPsec."""
 
 import os
 
 from PySide6.QtCore import QByteArray, Qt
-from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
+from PySide6.QtGui import QIcon, QPainter, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 
 
 class TrayIconProvider:
-    """Gera e cacheia ícones de bandeja monocromáticos na cor do status."""
+    """Renderiza o ícone do app (icon.svg) nos tamanhos usados na bandeja.
 
-    STATE_COLORS = {
-        "connected": "#2ECC71",
-        "disconnected": "#95A5A6",
-        "connecting": "#F39C12",
-    }
+    O ícone da bandeja é o MESMO da janela/menu (escudo azul com cadeado),
+    sem tintagem por estado — o status é informado pelo tooltip e menu.
+    """
 
     _SIZES = (16, 22, 24, 32, 48, 64)
-    _cache = {}
+    _icon = None
 
     def __init__(self):
         script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -26,13 +24,13 @@ class TrayIconProvider:
             self._svg_data = QByteArray(f.read())
         self._renderer = QSvgRenderer(self._svg_data)
 
-    def icon_for_state(self, state: str) -> QIcon:
-        color = self.STATE_COLORS.get(state, self.STATE_COLORS["disconnected"])
-        if color not in self._cache:
-            self._cache[color] = self._build_icon(color)
-        return self._cache[color]
+    def icon(self) -> QIcon:
+        """Retorna o QIcon do ícone do app renderizado em vários tamanhos."""
+        if TrayIconProvider._icon is None:
+            TrayIconProvider._icon = self._build_icon()
+        return TrayIconProvider._icon
 
-    def _build_icon(self, color: str) -> QIcon:
+    def _build_icon(self) -> QIcon:
         icon = QIcon()
         for size in self._SIZES:
             pixmap = QPixmap(size, size)
@@ -40,8 +38,6 @@ class TrayIconProvider:
             painter = QPainter(pixmap)
             painter.setRenderHint(QPainter.Antialiasing)
             self._renderer.render(painter, pixmap.rect())
-            painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
-            painter.fillRect(pixmap.rect(), QColor(color))
             painter.end()
             icon.addPixmap(pixmap)
         return icon

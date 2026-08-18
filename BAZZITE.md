@@ -129,8 +129,9 @@ O app roda na bandeja (ícone persistente ao lado do relógio):
   KStatusNotifierItem Support** por padrão — o `QSystemTrayIcon` funciona sem
   configuração extra. Em desktops sem essa extensão, a bandeja é desabilitada
   e o app se comporta normalmente.
-- **Ícone de status:** verde = conectado, âmbar = conectando, cinza =
-  desconectado. O tooltip mostra conexão e estado.
+- **Ícone:** o mesmo do app (escudo azul com cadeado). O status da conexão é
+  mostrado no **tooltip** (conexão + estado) e nos itens do menu
+  (Conectar/Desconectar habilitados conforme o estado).
 - **Menu da bandeja:** Mostrar/Ocultar Janela, seleção da conexão,
   Conectar/Desconectar e Sair.
 - **Fechar a janela (X):** minimiza para a bandeja — a **VPN permanece ativa**.
