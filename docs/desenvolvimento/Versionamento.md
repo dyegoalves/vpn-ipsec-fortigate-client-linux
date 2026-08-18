@@ -1,10 +1,10 @@
 ---
 title: "Controle de Versão"
-description: "Modelo Git Flow, convenções de commit e processo de release"
+description: "Modelo GitHub Flow, convenções de commit e processo de release"
 date: 2026-08-18T15:30:00-03:00
-updated: 2026-08-18T15:30:00-03:00
-tags: [desenvolvimento, versionamento, git-flow, release]
-aliases: [Versionamento, Git Flow, Controle de Versão]
+updated: 2026-08-18T16:40:00-03:00
+tags: [desenvolvimento, versionamento, github-flow, release]
+aliases: [Versionamento, GitHub Flow, Controle de Versão]
 related:
   - desenvolvimento/Contributing
   - empacotamento/Packaging-Overview
@@ -12,7 +12,7 @@ related:
 
 # Controle de Versão
 
-O projeto usa **Git Flow** com SemVer e **Conventional Commits**.
+O projeto usa **GitHub Flow** com SemVer e **Conventional Commits**.
 
 ---
 
@@ -20,24 +20,55 @@ O projeto usa **Git Flow** com SemVer e **Conventional Commits**.
 
 | Branch | Papel | Protegida |
 |---|---|---|
-| `main` | Código de produção. Só entra via merge de `release/*`. Tags aqui. | Sim |
-| `develop` | Integração. Feature branches nascem daqui. | Não |
-| `release/vX.Y.Z` | Preparação de release. Bumps de versão e fixes finais. | Não |
-| `feature/*` | Funcionalidades novas. Nasce de `develop`, merge de volta. | Não |
-| `hotfix/*` | Correção urgente em produção. Nasce de `main`, merge em `main` e `develop`. | Não |
+| `main` | Branch única. Todo desenvolvimento, produção e tags. | Sim |
+| `feature/*` | Funcionalidades ou correções. Nasce de `main`, merge de volta. | Não |
+
+> `develop` e `release/*` não são usados. Tudo flui por `main`.
 
 ---
 
-## Fluxo de Release (Git Flow)
+## Fluxo de Desenvolvimento
 
-Etapa sequencial, sem atalhos:
+Etapa sequencial:
 
-### 1. Criar release branch
+### 1. Branch de trabalho a partir de `main`
 
 ```bash
-git checkout develop
-git pull origin develop
-git checkout -b release/vX.Y.Z
+git checkout main
+git pull origin main
+git checkout -b feature/nome-da-feature
+```
+
+### 2. Commits
+
+Commits direto na branch de trabalho, seguindo Conventional Commits:
+
+```
+fix: corrige duplo clique na bandeja
+feat: adiciona suporte a múltiplas conexões
+```
+
+### 3. Merge em `main`
+
+```bash
+git checkout main
+git merge feature/nome-da-feature --no-ff
+git push origin main
+```
+
+Após o merge, apagar a branch de trabalho (local e remoto).
+
+---
+
+## Fluxo de Release (GitHub Flow)
+
+Release = tag em `main` + publicação com artefatos.
+
+### 1. Garantir `main` atualizado
+
+```bash
+git checkout main
+git pull origin main
 ```
 
 ### 2. Bumps de versão
@@ -52,14 +83,8 @@ Commit:
 build: bump packaging version to vX.Y.Z
 ```
 
-Push da branch de release:
-```bash
-git push origin release/vX.Y.Z
-```
+### 3. Buildar artefatos
 
-### 3. Testes finais
-
-Buildar e validar artefatos:
 ```bash
 # AppImage (local)
 bash packaging/appimage/build.sh
@@ -72,11 +97,9 @@ podman run --rm -v "$(pwd):/workspace:z" -w /workspace debian:bookworm-slim bash
   "apt-get update -qq && apt-get install -y -qq dpkg-dev python3 && bash packaging/deb/build.sh"
 ```
 
-### 4. Merge em main + tag
+### 4. Criar tag
 
 ```bash
-git checkout main
-git merge release/vX.Y.Z --no-ff -m "release: merge vX.Y.Z into main"
 git tag vX.Y.Z
 git push origin main --tags
 ```
@@ -92,21 +115,6 @@ gh release create vX.Y.Z \
   packaging/appimage/VPN-IPsec-Client-vX.Y.Z-x86_64.AppImage \
   packaging/deb/vpn-ipsec-client_vX.Y.Z_amd64.deb \
   packaging/vpn-ipsec-client-vX.Y.Z-1.x86_64.rpm
-```
-
-### 6. Merge de volta em develop
-
-```bash
-git checkout develop
-git merge release/vX.Y.Z --no-edit
-git push origin develop
-```
-
-### 7. Deletar release branch
-
-```bash
-git branch -d release/vX.Y.Z
-git push origin --delete release/vX.Y.Z
 ```
 
 ---
@@ -127,7 +135,6 @@ Formato: `<tipo>(escopo): descrição`
 | `test` | Testes |
 | `build` | Empacotamento, deps, CI |
 | `chore` | Manutenção geral |
-| `release` | Merge de release branch em main |
 
 ### Regras
 
@@ -150,25 +157,6 @@ MAJOR.MINOR.PATCH
 
 ---
 
-## Hotfix
-
-Correção urgente sem esperar a próxima release:
-
-```bash
-git checkout main
-git checkout -b hotfix/vX.Y.Z
-# fix...
-git commit -m "fix: ..."
-git checkout main
-git merge hotfix/vX.Y.Z --no-ff
-git tag vX.Y.Z
-git checkout develop
-git merge hotfix/vX.Y.Z
-git branch -d hotfix/vX.Y.Z
-```
-
----
-
 ## Regras do Repo (AGENTS.md)
 
 1. Comunicação em PT-BR
@@ -176,21 +164,7 @@ git branch -d hotfix/vX.Y.Z
 3. Sem comentários internos no código
 4. Nunca commitar sem aprovação
 5. Nunca push sem confirmação explícita
-
-## Convenção de Terminal
-
-- **Commits de desenvolvimento vão em `develop`** — nunca direto em `main`
-- `main` só recebe conteúdo via merge de `release/*` (ou hotfix)
-- O shell pode iniciar na branch `develop` (via `~/.bash_profile`)
-
-```
-git checkout develop        # dev sempre em develop
-git add <arquivos>
-git commit -m "..."
-git push origin develop
-```
-
-Para levar a `develop` para produção, siga o fluxo de release acima (criar `release/vX.Y.Z`, testar, merge em `main`, tag).
+6. Commit direto em `main` ou via `feature/*` — sem branches intermediárias
 
 ---
 

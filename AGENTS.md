@@ -49,15 +49,16 @@ This project is indexed by GitNexus as **vpn-ipsec-fortigate-client-linux** (717
 - **Never commit without preview/confirmation.** Do not run `git commit` without first showing what will be committed and getting confirmation.
 - Always stage only intended files. Never commit secrets or keys.
 
-## Git Flow rules
+## GitHub Flow rules
 
-Este projeto usa **Git Flow estrito** (documentado em `docs/desenvolvimento/Versionamento.md`). Regras obrigatórias:
+Este projeto usa **GitHub Flow** (documentado em `docs/desenvolvimento/Versionamento.md`). Regras obrigatórias:
 
-- Commits de desenvolvimento vão **sempre** em `develop` (`git checkout develop` antes de commitar).
-- `main` recebe conteúdo **apenas** via merge de `release/*` ou `hotfix/*`. Nunca fast-forward direto de `develop` para `main`.
-- **Nunca** criar commites de "sync"/"align" manuais entre branches para "consertar" divergência visual. Em Git Flow, `main` e `develop` frequentemente ficam em commits diferentes com conteúdo idêntico — isso é o estado normal, não é bug.
-- Criação de release: `release/vX.Y.Z` a partir de `develop` → bumps de versão → build de artefatos → merge em `main` + tag → merge em `develop` → deletar branch.
+- **Branch única:** `main` é a única branch de longa duração. Todo desenvolvimento e produção flui por `main`.
+- Feature branches: `git checkout -b feature/nome` — sempre a partir de `main`.
+- Commits direto em `main` ou via merge de `feature/*`.
+- **Nunca criar branches intermediárias** (`develop`, `release/*`, `hotfix/*`) — o projeto não usa Git Flow.
+- Releases: tag em `main` → `gh release create` com artefatos.
 - Tags são imutáveis, nunca mover/recriar.
 - Push sempre requer aprovação explícita do usuário.
 - SemVer: `MAJOR.MINOR.PATCH` (fix → PATCH, feat → MINOR, breaking → MAJOR).
-- Conventional Commits: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `build`, `chore`, `release`.
+- Conventional Commits: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `build`, `chore`.
