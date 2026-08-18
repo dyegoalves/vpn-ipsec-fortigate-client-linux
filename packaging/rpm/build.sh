@@ -13,6 +13,9 @@ podman run --rm \
     dnf install -y -q rpm-build python3 2>&1 | tail -1
     mkdir -p /root/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
     cp /workspace/packaging/rpm/SPECS/vpn-ipsec-client.spec /root/rpmbuild/SPECS/
+    cp -r /workspace/src /root/rpmbuild/SOURCES/
+    cp /workspace/main.py /root/rpmbuild/SOURCES/
+    cp /workspace/requirements.txt /root/rpmbuild/SOURCES/
     rpmbuild -bb /root/rpmbuild/SPECS/vpn-ipsec-client.spec 2>&1 | tail -5
     find /root/rpmbuild/RPMS -name '*.rpm' -exec cp {} /workspace/packaging/ \;
   "

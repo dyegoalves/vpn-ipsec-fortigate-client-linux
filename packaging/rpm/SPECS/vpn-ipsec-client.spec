@@ -16,10 +16,9 @@ Gerencia conexões VPN IPsec com toggle visual, monitoramento de status e suport
 a strongSwan 5.x (stroke) e 6+ (swanctl/vici).
 
 %prep
-cp -r %{_sourcedir}/../../../src .
-cp -r %{_sourcedir}/../../../main.py .
-cp -r %{_sourcedir}/../../../requirements.txt .
-cp -r %{_sourcedir}/../../../src/assets .
+cp -r %{_sourcedir}/src .
+cp -r %{_sourcedir}/main.py .
+cp -r %{_sourcedir}/requirements.txt .
 
 %install
 mkdir -p %{buildroot}/usr/lib/vpn-ipsec-client
