@@ -62,6 +62,16 @@ tray.set_connections(["vpn-fortigate"], current="vpn-fortigate")
 - **Desconectar** - Termina conexão VPN
 - **Sair** - Fecha aplicação
 
+## Comportamento dos Cliques no Ícone
+
+| Ação | Comportamento |
+|---|---|
+| 1 clique esquerdo | Nada (registra o tempo para detecção de duplo clique) |
+| 2 cliques esquerdo (≤ 300ms) | Abre a janela principal |
+| 1 clique direito | Menu de contexto nativo |
+
+> **Nota:** O sinal `DoubleClick` do `QSystemTrayIcon` não é suportado em implementações Linux com appindicator/StatusNotifierItem — o ambiente sempre emite `Trigger`. Por isso o duplo clique é detectado manualmente com `QElapsedTimer`: um 2º `Trigger` dentro de 300ms dispara a abertura da janela.
+
 ## Notificações
 
 Exibe notificações nativas do sistema quando:
