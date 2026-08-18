@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **vpn-ipsec-fortigate-client-linux** (717 symbols, 883 relationships, 12 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **vpn-ipsec-fortigate-client-linux** (717 symbols, 884 relationships, 12 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 
@@ -54,8 +54,8 @@ This project is indexed by GitNexus as **vpn-ipsec-fortigate-client-linux** (717
 Este projeto usa **GitHub Flow** (documentado em `docs/desenvolvimento/Versionamento.md`). Regras obrigatórias:
 
 - **Branch única:** `main` é a única branch de longa duração. Todo desenvolvimento e produção flui por `main`.
-- Feature branches: `git checkout -b feature/nome` — sempre a partir de `main`.
-- Commits direto em `main` ou via merge de `feature/*`.
+- **Sempre criar `feature/*` branch** para código novo, fixes ou qualquer alteração — nunca commitar direto em `main`.
+- Fluxo: `git checkout main` → `git checkout -b feature/nome` → commit → merge em `main` via `--no-ff` → deletar branch.
 - **Nunca criar branches intermediárias** (`develop`, `release/*`, `hotfix/*`) — o projeto não usa Git Flow.
 - Releases: tag em `main` → `gh release create` com artefatos.
 - Tags são imutáveis, nunca mover/recriar.
