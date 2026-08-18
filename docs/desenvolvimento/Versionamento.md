@@ -39,6 +39,8 @@ git pull origin main
 git checkout -b feature/nome-da-feature
 ```
 
+> **Regra obrigatória:** todo código novo, fix ou alteração vai em `feature/*` branch. Nunca commitar direto em `main`.
+
 ### 2. Commits
 
 Commits direto na branch de trabalho, seguindo Conventional Commits:
