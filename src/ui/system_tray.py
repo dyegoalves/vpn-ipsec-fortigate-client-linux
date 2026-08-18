@@ -37,8 +37,7 @@ class SystemTray(QSystemTrayIcon):
         menu = QMenu()
 
         self.show_action = QAction("Mostrar Janela", menu)
-        self.show_action.setCheckable(True)
-        self.show_action.triggered.connect(self._on_show_toggled)
+        self.show_action.triggered.connect(self._on_show_triggered)
         menu.addAction(self.show_action)
         menu.addSeparator()
 
@@ -90,11 +89,8 @@ class SystemTray(QSystemTrayIcon):
             else:
                 self._click_timer.restart()
 
-    def _on_show_toggled(self, checked):
-        if checked:
-            self.window_shown.emit()
-        else:
-            self.window_hidden.emit()
+    def _on_show_triggered(self):
+        self.window_shown.emit()
 
     def set_connections(self, connections, current=None):
         self._connections = list(connections)
@@ -118,7 +114,7 @@ class SystemTray(QSystemTrayIcon):
         self._apply_menu_status()
 
     def set_window_visible(self, visible: bool):
-        self.show_action.setChecked(visible)
+        pass
 
     def notify(self, title: str, message: str):
         if self.isVisible():
