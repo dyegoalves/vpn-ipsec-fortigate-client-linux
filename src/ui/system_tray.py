@@ -1,7 +1,7 @@
 """Bandeja do sistema (system tray) do Cliente VPN IPsec."""
 
 from PySide6.QtCore import QElapsedTimer, Signal
-from PySide6.QtGui import QAction, QActionGroup, QIcon
+from PySide6.QtGui import QAction, QActionGroup, QIcon, QPixmap
 from PySide6.QtWidgets import QMenu, QSystemTrayIcon
 
 from ..config.app_config import APP_TITLE, CONNECTION_STATES
@@ -37,7 +37,7 @@ class SystemTray(QSystemTrayIcon):
         menu = QMenu()
 
         self.show_action = QAction("Mostrar Janela", menu)
-        self.show_action.setIcon(QIcon.fromTheme("window-new"))
+        self.show_action.setIcon(QIcon(QIcon.fromTheme("window-new").pixmap(16, 16)))
         self.show_action.triggered.connect(self._on_show_triggered)
         menu.addAction(self.show_action)
         menu.addSeparator()
