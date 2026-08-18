@@ -19,9 +19,10 @@ from PySide6.QtWidgets import (
     QTextEdit,
     QMessageBox,
     QStatusBar,
+    QSystemTrayIcon,
 )
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QFont, QPalette, QColor, QIcon
+from PySide6.QtCore import Qt, QTimer, QSettings
+from PySide6.QtGui import QFont, QPalette, QColor, QIcon, QCursor
 
 # Import from other modules
 from ..ipsec.ipsec_manager import IPsecManager
@@ -36,6 +37,7 @@ from .connection_config_widget import ConnectionConfigWidget
 from .status_log_widget import StatusLogWidget
 from ..utils.system_theme import get_system_color_scheme # Importar a nova função
 from .theme_selector import ThemeSelectorWidget
+from .system_tray import SystemTray
 
 
 class MainWindow(QMainWindow):
@@ -49,7 +51,58 @@ class MainWindow(QMainWindow):
         self.log_manager = AppLoggers()
         self.is_connected = False
         self.current_conn_name = None
+        self._quitting = False
+        self.settings = QSettings("VPN IPsec Client", "vpn-ipsec-client")
+        self.tray = None
+        # A bandeja precisa existir antes do carregamento das conexões em
+        # initUI() (load_ipsec_config) para receber a lista inicial.
+        self.setup_system_tray()
         self.initUI()
+
+    def setup_system_tray(self):
+        """Cria a bandeja do sistema quando suportada e conecta seus sinais."""
+        if not QSystemTrayIcon.isSystemTrayAvailable():
+            return
+        self.tray = SystemTray(self)
+        self.tray.connection_selected.connect(self.on_connection_changed)
+        self.tray.connect_requested.connect(self.connect_vpn)
+        self.tray.disconnect_requested.connect(self.disconnect_vpn)
+        self.tray.quit_requested.connect(self.quit_app)
+        self.tray.window_shown.connect(self.show_window)
+        self.tray.window_hidden.connect(self.hide_window)
+
+    def has_system_tray(self) -> bool:
+        return self.tray is not None and self.tray.isVisible()
+
+    def show_window(self):
+        """Mostra e foca a janela principal."""
+        if self.isMinimized():
+            self.showNormal()
+        else:
+            self.show()
+        self.activateWindow()
+        self.raise_()
+        if self.tray:
+            self.tray.set_window_visible(True)
+
+    def hide_window(self):
+        """Oculta a janela mantendo o app na bandeja."""
+        self.hide()
+        if self.tray:
+            self.tray.set_window_visible(False)
+
+    def toggle_window(self):
+        """Alterna entre mostrar e ocultar a janela principal."""
+        if self.isVisible():
+            self.hide_window()
+        else:
+            self.show_window()
+
+    def quit_app(self):
+        """Encerra o aplicativo de verdade (desconectando a VPN, se ativa)."""
+        self._quitting = True
+        self.close()
+        QApplication.instance().quit()
 
     def initUI(self):
         """Initializes the user interface."""
@@ -65,7 +118,8 @@ class MainWindow(QMainWindow):
             print(f"WARNING: Failed to load application icon from: {icon_path}")
         self.setWindowIcon(icon)
 
-        self.center_window()
+        if not self.restore_window_geometry():
+            self.center_window()
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -141,12 +195,16 @@ class MainWindow(QMainWindow):
                 self.config_widget.update_connection_details(
                     first_conn, config_file_path, server_addr, conn_details
                 )
+                if self.tray:
+                    self.tray.set_connections(connections, first_conn)
                 self.refresh_connection_status()
                 self.add_status_message(f"Loaded IPsec configuration: {first_conn}")
             else:
                 self.config_widget.set_connections([])
                 self.config_widget.set_error_state("No configurations found")
                 self.add_status_message(DEFAULT_MESSAGES["NO_CONFIGS"])
+                if self.tray:
+                    self.tray.set_connections([])
 
         except Exception as e:
             self.add_status_message(f"Error loading IPsec configuration: {str(e)}")
@@ -162,6 +220,8 @@ class MainWindow(QMainWindow):
             self.config_widget.update_connection_details(
                 conn_name, config_file_path, server_addr, conn_details
             )
+            if self.tray:
+                self.tray.set_current_connection(conn_name)
             self.refresh_connection_status()
 
     def refresh_connection_status(self):
@@ -188,6 +248,8 @@ class MainWindow(QMainWindow):
             self.current_conn_name
         )
         self.config_widget.update_status(status, is_connected)
+        if self.tray:
+            self.tray.update_status(status, is_connected)
 
         # Verificar se houve mudança no estado de conexão
         if is_connected and not self.is_connected:
@@ -199,6 +261,11 @@ class MainWindow(QMainWindow):
                 f"Connected to {self.current_conn_name}. Log file created.",
                 show_in_ui=True,
             )
+            if self.tray:
+                self.tray.notify(
+                    "VPN IPsec Client",
+                    f"Conectado a {self.current_conn_name}.",
+                )
         elif not is_connected and self.is_connected:
             # Mudança para desconectado
             self.is_connected = False
@@ -207,6 +274,11 @@ class MainWindow(QMainWindow):
             self.add_status_message(
                 f"Disconnected from {self.current_conn_name}.", show_in_ui=True
             )
+            if self.tray:
+                self.tray.notify(
+                    "VPN IPsec Client",
+                    f"Desconectado de {self.current_conn_name}.",
+                )
 
     def toggle_connection(self, is_checked: bool):
         """Alterna a conexão IPsec entre ON/OFF."""
@@ -325,13 +397,34 @@ class MainWindow(QMainWindow):
             # Só atualizar o widget de status, mas não executar ações de logging/mensagem
             # que já são tratadas em connect_vpn/disconnect_vpn
             self.config_widget.update_status(status, is_connected)
+            if self.tray:
+                self.tray.update_status(status, is_connected)
 
     def center_window(self):
-        """Centraliza a janela na tela."""
+        """Centraliza a janela na tela primária."""
+        screen = QApplication.primaryScreen() or self.screen()
+        if screen is None:
+            return
         window_geometry = self.frameGeometry()
-        center_point = self.screen().availableGeometry().center()
-        window_geometry.moveCenter(center_point)
+        window_geometry.moveCenter(screen.availableGeometry().center())
         self.move(window_geometry.topLeft())
+
+    def save_window_geometry(self):
+        """Persiste a geometria da janela (posição e tamanho)."""
+        self.settings.setValue("window/geometry", self.saveGeometry())
+
+    def restore_window_geometry(self) -> bool:
+        """Restaura a última geometria da janela, se ainda estiver visível em um monitor."""
+        geometry = self.settings.value("window/geometry")
+        if not geometry:
+            return False
+        if not self.restoreGeometry(geometry):
+            return False
+        frame = self.frameGeometry()
+        for screen in QApplication.screens():
+            if screen.availableGeometry().intersects(frame):
+                return True
+        return False
 
     def update_theme(self):
         """Verifica o tema do sistema e aplica o stylesheet correspondente.
@@ -382,19 +475,37 @@ class MainWindow(QMainWindow):
                 print(f"WARNING: Stylesheet not found: {style_path}")
 
     def closeEvent(self, event):
-        """Lida com o evento de fechamento da janela, desconectando a VPN se estiver conectada."""
+        """Lida com o fechamento da janela.
+
+        Com a bandeja ativa, fechar a janela apenas a oculta (a VPN permanece
+        conectada). O encerramento real (menu Sair da bandeja ou quit_app)
+        desconecta a VPN antes de sair.
+        """
+        self.save_window_geometry()
+        if self._quitting or not self.has_system_tray():
+            self._shutdown()
+            event.accept()
+            return
+
+        # Chamar hide() adiado: dentro do closeEvent o estado interno do Qt
+        # não é atualizado corretamente, deixando isVisible() inconsistente e
+        # impedindo que o FOCUS (segunda instância) re-exiba a janela.
+        event.ignore()
+        QTimer.singleShot(0, self.hide_window)
         if self.is_connected and self.current_conn_name:
-            # Desconecta automaticamente a VPN ao fechar o aplicativo
+            self.tray.notify(
+                "VPN IPsec Client",
+                f"VPN '{self.current_conn_name}' permanece ativa na bandeja.",
+            )
+
+    def _shutdown(self):
+        """Desconecta a VPN (se ativa) e permite o encerramento do app."""
+        if self.is_connected and self.current_conn_name:
             self.add_status_message(f"Desconectando IPsec connection: {self.current_conn_name} antes de sair...", show_in_ui=True)
             success, message = self.connection_manager.disconnect_connection(self.current_conn_name)
             self.add_status_message(message, show_in_ui=True)
-            
+
             if success:
                 self.add_status_message(f"VPN '{self.current_conn_name}' desconectada com sucesso antes de sair.", show_in_ui=True)
-                event.accept()  # Aceita o evento de fechamento
             else:
-                # Mesmo se falhar, permitir o fechamento do aplicativo
                 self.add_status_message(f"Falha ao desconectar VPN '{self.current_conn_name}' antes de sair, mas aplicativo será fechado: {message}", show_in_ui=True)
-                event.accept()  # Aceita o evento de fechamento
-        else:
-            event.accept()  # Se não estiver conectado, apenas fecha o app

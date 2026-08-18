@@ -86,6 +86,9 @@ isolado com PySide6, configura o sudo **NOPASSWD** para o `ipsec` e instala o
 comando `vpn-ipsec-client`. Configuração de exemplo em
 `packaging/bazzite/example.ipsec.conf` e detalhes em `packaging/bazzite/README.md`.
 
+O app roda na **bandeja do sistema** (AppIndicator já incluído no Bazzite GNOME):
+fechar a janela minimiza para a bandeja e **Sair desconecta a VPN**.
+
 Caminhos IPsec configuráveis via ambiente (`VPN_IPSEC_CONF`, `VPN_IPSEC_D_PATH`)
 para contornar o root imutável se necessário.
 

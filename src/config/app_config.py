@@ -10,7 +10,9 @@ import os
 APP_TITLE = "Cliente VPN IPsec Fortigate"
 WINDOW_SIZE = (500, 650)
 
-os.environ["QT_QPA_PLATFORM"] = "xcb"
+# Permite ao usuário escolher o backend Qt (ex.: wayland no Bazzite/GNOME)
+# sem sobrescrever a escolha já feita no ambiente.
+os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
 
 # --- UI Styles (CSS) ---
 CONNECTION_STATES = {

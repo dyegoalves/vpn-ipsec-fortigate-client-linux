@@ -51,6 +51,14 @@ O instalador executa:
 3. **sudo NOPASSWD** — cria `/etc/sudoers.d/vpn-ipsec-client` permitindo o usuário
    executar `/usr/sbin/ipsec` sem senha.
 4. **Launcher** — instala `/usr/local/bin/vpn-ipsec-client` e a entrada `.desktop`.
+   - O desktop entry usa **caminho absoluto** (`Exec=/usr/local/bin/vpn-ipsec-client`),
+     garantindo que o menu do desktop nunca dependa do `PATH`.
+   - Launchers órfãos em `~/.local/bin` ou `~/bin` (criados manualmente apontando
+     para um diretório antigo) são **removidos** — eles viriam antes de
+     `/usr/local/bin` no `PATH` do usuário e quebrariam o lançamento pelo menu.
+
+> **⚠️ Importante:** o `install.sh` **não abre o app** — ele apenas instala.
+> Para abrir a GUI use `vpn-ipsec-client` no terminal ou o menu de aplicativos.
 
 ---
 
@@ -84,6 +92,25 @@ usuario_vpn : EAP "senha_da_vpn"
 # Direto do launcher (instalado pelo script)
 vpn-ipsec-client
 
+# Ou pelo menu de aplicativos do KDE / GNOME
+# (Super -> "VPN IPsec Client" -> clique no ícone)
+```
+
+### Posição da janela
+
+- A janela abre **centralizada na tela primária**.
+- O app **lembra a posição e o tamanho** da janela (`QSettings`): mova a janela
+  para onde preferir e, ao fechar, ela abre no mesmo lugar na próxima vez.
+- Em setups com vários monitores, se a janela "sumir", arraste-a para o monitor
+  desejado e feche — a posição será salva.
+
+### Single-instance
+
+O app é **single-instance**: rodar `vpn-ipsec-client` de novo (ou clicar no
+menu) com o app já aberto apenas **traz a janela para frente** (mesmo que ela
+esteja oculta na bandeja).
+
+```bash
 # Ou em modo dev, a partir do código-fonte
 cd /home/dyegoalves/projetos/projeto-vpn-ipsec-fortigate-client-linux
 python3 -m venv .venv
@@ -91,6 +118,24 @@ source .venv/bin/activate
 pip install -r requirements.txt
 python main.py
 ```
+
+---
+
+## Bandeja do sistema (system tray)
+
+O app roda na bandeja (ícone persistente ao lado do relógio):
+
+- **Requisito:** o Bazzite GNOME já inclui a extensão **AppIndicator and
+  KStatusNotifierItem Support** por padrão — o `QSystemTrayIcon` funciona sem
+  configuração extra. Em desktops sem essa extensão, a bandeja é desabilitada
+  e o app se comporta normalmente.
+- **Ícone de status:** verde = conectado, âmbar = conectando, cinza =
+  desconectado. O tooltip mostra conexão e estado.
+- **Menu da bandeja:** Mostrar/Ocultar Janela, seleção da conexão,
+  Conectar/Desconectar e Sair.
+- **Fechar a janela (X):** minimiza para a bandeja — a **VPN permanece ativa**.
+- **Sair (menu da bandeja):** desconecta a VPN antes de encerrar o app.
+- **Notificações:** avisos de conectado/desconectado e de "VPN ativa na bandeja".
 
 ---
 
@@ -158,6 +203,9 @@ sudo rpm-ostree uninstall strongswan strongswan-charon-nm
 
 | Sintoma | Causa | Correção |
 |---|---|---|
+| App **não abre pelo menu** do desktop, mas abre no terminal | launcher órfão em `~/.local/bin` (ou `~/bin`) apontando para diretório antigo; o `PATH` do usuário prioriza esses diretórios sobre `/usr/local/bin` | rodar o instalador de novo (ele remove os órfãos) ou `rm -f ~/.local/bin/vpn-ipsec-client` |
+| `cd: ...projeto-vpn-ipsec...: Arquivo ou diretório inexistente` | mesmo problema acima (launcher órfão) | remover o launcher órfão e usar o do `/usr/local/bin` |
+| App abre **no monitor secundário** | posição salva de uma sessão anterior em outro monitor | mover a janela para o monitor desejado e fechar (a nova posição é salva) ou apagar `~/.config/VPN\ IPsec\ Client/` |
 | `ipsec: command not found` | strongSwan não layer-ado | `sudo rpm-ostree install strongswan strongswan-charon-nm` e reiniciar |
 | `sudo: a terminal is required` / `no tty present` | regra NOPASSWD ausente | rodar o instalador de novo ou criar `/etc/sudoers.d/vpn-ipsec-client` manualmente |
 | App não abre (Qt falha) | PySide6 do sistema quebrado | usar o venv do instalador (já isolado) ou reinstalar PySide6 no venv |
@@ -185,8 +233,12 @@ README.md                   # seção "Port para Bazzite"
 ## Status
 
 - ✅ strongSwan via `rpm-ostree`
-- ✅ GUI isolada em venv (PySide6 6.8.3)
+- ✅ GUI isolada em venv (PySide6 6.11.1)
 - ✅ sudo NOPASSWD para `ipsec`
 - ✅ caminhos de config configuráveis
-- ✅ launcher + desktop entry
+- ✅ launcher + desktop entry (caminho absoluto, sem launchers órfãos)
+- ✅ bandeja do sistema (system tray) com status e menu
+- ✅ fechar (X) minimiza para a bandeja; Sair desconecta a VPN
+- ✅ single-instance com FOCUS (janela volta mesmo oculta na bandeja)
+- ✅ posição da janela persistida (tela primária por padrão)
 - ✅ documentação completa
