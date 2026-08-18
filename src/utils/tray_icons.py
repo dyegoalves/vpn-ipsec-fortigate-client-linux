@@ -41,3 +41,17 @@ class TrayIconProvider:
             painter.end()
             icon.addPixmap(pixmap)
         return icon
+
+    def icon_for_status(self, status: str) -> QIcon:
+        normalized = status.strip().lower()
+        if normalized == "conectado":
+            return self._load_png_icon("vpn-green.png")
+        if normalized in ("desconectado", "erro"):
+            return self._load_png_icon("vpn-red.png")
+        return self.icon()
+
+    def _load_png_icon(self, filename: str) -> QIcon:
+        path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "..", "assets", filename
+        )
+        return QIcon(path)

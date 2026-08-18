@@ -31,6 +31,15 @@ O script irá:
 
 O AppImage resultante será nomeado `VPN-IPsec-Client-<version>-x86_64.AppImage` e salvo no diretório `packaging/appimage/`.
 
+## Ícones da bandeja
+
+O build inclui os ícones da bandeja:
+
+- `vpn-ipsec-client-green.png` — status conectado
+- `vpn-ipsec-client-red.png` — status desconectado/erro
+
+Esses ícones são copiados de `src/assets/vpn-green.png` e `src/assets/vpn-red.png` para `AppDir/usr/share/icons/hicolor/256x256/apps/`.
+
 ## Requisitos
 
 - Linux
