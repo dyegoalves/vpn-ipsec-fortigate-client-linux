@@ -1,5 +1,5 @@
 Name:           vpn-ipsec-client
-Version:        0.7.0
+Version:        0.8.0
 Release:        1
 Summary:        Cliente VPN IPsec para Linux com interface gráfica
 
@@ -53,6 +53,11 @@ cp src/assets/icon.svg %{buildroot}/usr/share/icons/hicolor/scalable/apps/vpn-ip
 pip3 install --break-system-packages -r /usr/lib/vpn-ipsec-client/requirements.txt 2>/dev/null || true
 
 %changelog
+* Tue Aug 18 2026 VPN IPsec Team <dyegoalves@github> - 0.8.0
+- Dynamic tray icons for VPN status
+- BuildArch set to x86_64
+- Packaging version bumps
+
 * Mon Aug 03 2026 VPN IPsec Team <dyegoalves@github> - 0.6.0
 - Documentação Obsidian com 26 arquivos em 7 pastas
 - Suporte a Bazzite/OSTree (strongSwan 6+, swanctl vici)
