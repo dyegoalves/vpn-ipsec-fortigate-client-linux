@@ -177,6 +177,19 @@ git branch -d hotfix/vX.Y.Z
 4. Nunca commitar sem aprovação
 5. Nunca push sem confirmação explícita
 
+## Convenção de Terminal
+
+- O shell pode iniciar na branch `develop` (via `~/.bash_profile`)
+- **Antes de qualquer commit/push, forçar `git checkout main` primeiro**
+- Se commit cair na branch errada: cherry-pick para `main` + reset de `develop` para `main`
+
+```
+git checkout main          # sempre antes de commitar
+git add <arquivos>
+git commit -m "..."
+git push origin main
+```
+
 ---
 
 *Última atualização: 2026-08-18*
