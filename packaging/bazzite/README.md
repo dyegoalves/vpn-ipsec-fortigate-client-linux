@@ -20,7 +20,13 @@ O script:
 1. (re)instala `strongswan` + `strongswan-charon-nm` via `rpm-ostree` (tenta `--apply-live`; se precisar, reinicie o sistema);
 2. cria um venv isolado em `~/.local/share/vpn-ipsec-client/venv` com o PySide6;
 3. grava uma regra segura de sudo **NOPASSWD** para `/usr/sbin/ipsec` para o usuário;
-4. instala o launcher `/usr/local/bin/vpn-ipsec-client` + entrada `.desktop`.
+4. instala o launcher `/usr/local/bin/vpn-ipsec-client` + entrada `.desktop`;
+5. **remove launchers órfãos** em `~/.local/bin`/`~/bin` (launchers manuais antigos
+   apontando para um diretório inexistente viriam **antes** de `/usr/local/bin` no
+   `PATH` do usuário e quebrariam o menu) e grava o desktop entry com **caminho
+   absoluto** (`Exec=/usr/local/bin/vpn-ipsec-client`).
+
+> O instalador **não abre a GUI** — rode `vpn-ipsec-client` depois.
 
 ## Configurar a VPN
 
@@ -35,6 +41,19 @@ Em seguida rode a GUI:
 ```bash
 vpn-ipsec-client
 ```
+
+## Bandeja do sistema (system tray)
+
+O Bazzite GNOME inclui a extensão **AppIndicator** por padrão, então o app roda
+na bandeja sem configuração extra:
+
+- Ícone do app (escudo azul com cadeado) — o status é mostrado no tooltip
+  (conexão/estado) e nos itens do menu (Conectar/Desconectar habilitados
+  conforme o estado).
+- Menu da bandeja: Mostrar/Ocultar Janela, seleção de conexão, Conectar,
+  Desconectar e Sair.
+- Fechar a janela (X) **minimiza para a bandeja** (VPN continua ativa); **Sair**
+  pela bandeja desconecta a VPN antes de encerrar.
 
 ## Caminhos alternativos (root imutável)
 

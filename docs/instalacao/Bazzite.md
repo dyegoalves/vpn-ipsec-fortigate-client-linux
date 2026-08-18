@@ -28,6 +28,9 @@ O script:
 2. Cria venv isolado com PySide6
 3. Configura `sudo NOPASSWD` para `ipsec`
 4. Instala comando `vpn-ipsec-client` global
+5. Remove launchers órfãos em `~/.local/bin`/`~/bin` e usa caminho absoluto no desktop entry
+
+> **Nota:** o instalador **não abre a GUI** — depois de rodar, execute `vpn-ipsec-client` (ou o ícone do menu).
 
 ## Configuração de Exemplo
 
@@ -84,6 +87,39 @@ systemctl reboot
 # Testar
 vpn-ipsec-client
 ```
+
+## Bandeja do Sistema (System Tray)
+
+O app roda na bandeja (ícone persistente ao lado do relógio):
+
+- Ícone do app (escudo azul com cadeado) — o status é mostrado no tooltip e no menu
+- Menu: Mostrar/Ocultar Janela, seleção de conexão, Conectar/Desconectar, Sair
+- Fechar a janela (X) **minimiza para a bandeja** — VPN permanece ativa
+- **Sair** pela bandeja desconecta a VPN antes de encerrar
+- **Single-instance:** rodar o launcher de novo apenas traz a janela para frente
+
+## Posição da Janela
+
+- Abre **centralizada na tela primária**.
+- **Lembra a posição/tamanho** (`QSettings`): onde você deixar a janela, ela abre lá na próxima vez.
+- Em múltiplos monitores, arraste para o monitor desejado e feche.
+
+## Problema Comum: App não abre pelo menu
+
+Se o app abre no terminal mas **não pelo menu/ícone do desktop**, provavelmente
+existe um launcher órfão antigo:
+
+```bash
+# Verificar
+which -a vpn-ipsec-client
+# Se listar algo em ~/.local/bin ANTES de /usr/local/bin, é o problema:
+rm -f ~/.local/bin/vpn-ipsec-client
+
+# Depois reindexar o menu
+kbuildsycoca6
+```
+
+O `install.sh` já faz essa limpeza automaticamente.
 
 ---
 *[[README|← Voltar]] | [[instalacao/Quick-Start|Início Rápido]]*

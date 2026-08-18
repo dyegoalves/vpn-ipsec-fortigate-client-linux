@@ -72,6 +72,11 @@ def main() -> None:
     # Create and show the main application window
     ex = MainWindow()
     app.main_window = ex  # Salva referência para focar via Socket
+
+    # Com bandeja ativa, o app continua rodando mesmo sem janela visível
+    if ex.has_system_tray():
+        app.setQuitOnLastWindowClosed(False)
+
     ex.show()
     
     # Callback para tratar requisições de outras instâncias que tentarem abrir
@@ -81,12 +86,7 @@ def main() -> None:
             client.waitForReadyRead(500)
             data = client.readAll().data()
             if b"FOCUS" in data:
-                if app.main_window.isMinimized():
-                    app.main_window.showNormal()
-                else:
-                    app.main_window.show()
-                app.main_window.activateWindow()
-                app.main_window.raise_()
+                app.main_window.show_window()
             client.disconnectFromServer()
             
     local_server.newConnection.connect(on_new_connection)

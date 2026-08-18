@@ -130,6 +130,14 @@ exec "$VENV_DIR/bin/python" main.py "\$@"
 EOF
 chmod 755 /usr/local/bin/$APP_NAME
 
+# Remover launchers órfãos criados manualmente em ~/.local/bin ou ~/bin.
+# Esses diretórios vêm ANTES de /usr/local/bin no PATH do usuário, então um
+# launcher velho apontando para um diretório antigo faria o menu do desktop
+# executar o comando errado (e o app nunca abriria). O correto é só o do
+# /usr/local/bin (instalado acima).
+rm -f "$TARGET_HOME/.local/bin/$APP_NAME" "$TARGET_HOME/bin/$APP_NAME"
+echo "    Launchers órfãos removidos (se existiam em ~/.local/bin ou ~/bin)."
+
 # Desktop entry para o usuário
 if [ -d "$TARGET_HOME/.local/share/applications" ]; then
     DESKTOP_DIR="$TARGET_HOME/.local/share/applications"
@@ -151,10 +159,10 @@ cat > "$DESKTOP_DIR/$APP_NAME.desktop" <<EOF
 [Desktop Entry]
 Name=VPN IPsec Client
 Comment=Cliente VPN IPsec (Fortigate) para Linux
-Exec=$APP_NAME
+Exec=/usr/local/bin/$APP_NAME
 Terminal=false
 Type=Application
-Categories=Network;Utility;
+Categories=Network;
 StartupNotify=true
 StartupWMClass=vpn-ipsec-client
 Icon=$APP_NAME

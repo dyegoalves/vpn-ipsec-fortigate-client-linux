@@ -1,5 +1,5 @@
 Name:           vpn-ipsec-client
-Version:        0.6.0
+Version:        0.7.0
 Release:        1
 Summary:        Cliente VPN IPsec para Linux com interface gráfica
 
