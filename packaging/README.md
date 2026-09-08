@@ -10,9 +10,17 @@ packaging/
 ├── appimage/             # Scripts e configurações para AppImage
 │   ├── build.sh          # Script para criar AppImage
 │   └── README.md         # Documentação para AppImage
-└── debian/               # Scripts e configurações para pacote .deb
-    ├── build.sh          # Script para criar pacote .deb
-    └── README.md         # Documentação para pacote .deb
+├── deb/                  # Scripts e configurações para pacote .deb
+│   ├── build.sh          # Script para criar pacote .deb
+│   └── README.md         # Documentação para pacote .deb
+├── bazzite/              # Instalador para Bazzite (Fedora Atomic / OSTree)
+│   ├── install.sh        # Instalador (rpm-ostree + venv + sudoers)
+│   ├── example.ipsec.conf
+│   └── README.md
+└── pop-os/               # Instalador para Pop!_OS (Ubuntu/Debian)
+    ├── install.sh        # Instalador (apt + venv + sudoers)
+    ├── example.ipsec.conf
+    └── README.md
 ```
 
 ## Como usar

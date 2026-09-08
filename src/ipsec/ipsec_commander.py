@@ -188,8 +188,9 @@ class IPsecCommander:
         section_lines = []
         in_section = False
         for line in lines:
-            # Formato swanctl: "fortigate-vpn: #3, ESTABLISHED, IKEv2, ..."
-            if re.match(rf"^\s*{re.escape(conn_name)}\s*:", line):
+            # Formato ipsec: "fortigate-vpn[2]: ESTABLISHED ..." ou
+            # "fortigate-vpn{7}: INSTALLED ..." e formato swanctl: "fortigate-vpn: #3, ESTABLISHED ..."
+            if re.match(rf"^\s*{re.escape(conn_name)}(\[\d+\]|\{{\d+\}})?\s*:", line):
                 in_section = True
                 section_lines.append(line)
                 continue

@@ -98,6 +98,19 @@ Se os comandos IPsec exigirem privilégios administrativos, execute com `sudo`:
 sudo python main.py
 ```
 
+## Port para Pop!_OS
+
+O **Pop!_OS** é baseado em Ubuntu/Debian e usa `apt`. Use o instalador dedicado:
+
+```bash
+sudo bash packaging/pop-os/install.sh
+```
+
+Ele instala o strongSwan via `apt`, cria um venv isolado com PySide6,
+configura o sudo **NOPASSWD** para o `ipsec` e instala o
+comando `vpn-ipsec-client`. Configuração de exemplo em
+`packaging/pop-os/example.ipsec.conf` e detalhes em `packaging/pop-os/README.md`.
+
 ## Configuração de Conexões IPsec
 
 Para que a aplicação possa gerenciar suas conexões VPN, é necessário configurar os arquivos de configuração do IPsec no seu sistema. A aplicação lê automaticamente as configurações de `/etc/ipsec.conf` e de arquivos `.conf` dentro de `/etc/ipsec.d/`.
