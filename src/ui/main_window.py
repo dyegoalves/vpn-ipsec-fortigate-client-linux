@@ -184,6 +184,8 @@ class MainWindow(QMainWindow):
         """Carrega a configuração IPsec do sistema."""
         try:
             connections = self.connection_manager.load_connections()
+            # Garante que a VPN inicie desligada: derruba conexões já ativas.
+            self.disconnect_active_connections()
 
             if connections:
                 self.config_widget.set_connections(connections)
@@ -209,6 +211,19 @@ class MainWindow(QMainWindow):
         except Exception as e:
             self.add_status_message(f"Error loading IPsec configuration: {str(e)}")
             self.config_widget.set_error_state(CONNECTION_STATES["ERROR"])
+
+    def disconnect_active_connections(self):
+        """Derruba conexões IPsec já ativas para a VPN sempre iniciar desligada."""
+        for conn in self.connection_manager.connections:
+            _, is_connected = self.connection_manager.get_connection_status(conn)
+            if not is_connected:
+                continue
+            self.add_status_message(
+                f'Conexão "{conn}" estava ativa ao iniciar; desconectando...',
+                show_in_ui=True,
+            )
+            _, message = self.connection_manager.disconnect_connection(conn)
+            self.add_status_message(message, show_in_ui=True)
 
     def on_connection_changed(self, conn_name):
         """Atualiza a interface quando a conexão selecionada muda."""
